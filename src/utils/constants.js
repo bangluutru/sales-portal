@@ -29,17 +29,29 @@ export const REQUEST_TYPES = {
   SAMPLE: { id: 'SAMPLE', label: 'Đề nghị xuất mẫu', icon: '📦', color: '#059669' }
 };
 
+export const DEFAULT_BONUS_TIERS = [
+  { level: 'Mức 1', revenueMin: 120000000, revenueMax: 200000000, allowance: 1000000, bonusPercent: 1.0 },
+  { level: 'Mức 2', revenueMin: 201000000, revenueMax: 300000000, allowance: 2000000, bonusPercent: 1.5 },
+  { level: 'Mức 3', revenueMin: 301000000, revenueMax: 500000000, allowance: 3000000, bonusPercent: 2.0 },
+  { level: 'Mức 4', revenueMin: 501000000, revenueMax: 0, allowance: 5000000, bonusPercent: 4.0 }
+];
+
 export const INITIAL_PEOPLE = [
   {
     id: 'P-001',
+    genderTitle: 'Ông',
     fullName: 'Nguyễn Văn An',
     phone: '0901234567',
     email: 'an.nguyen@genkifami.vn',
     dateOfBirth: '1995-04-12',
     address: '124 Hoàng Hoa Thám, Ba Đình, Hà Nội',
+    currentAddress: 'Số 18 Ngõ 68 Đội Cấn, Ba Đình, Hà Nội',
     identityNumber: '001095012345',
+    identityDate: '15/06/2021',
+    identityPlace: 'Cục Cảnh sát QLHC về TTXH',
     taxNumber: '8012345678',
     bankName: 'Vietcombank',
+    bankBranch: 'Chi nhánh Ba Đình - Hà Nội',
     bankAccount: '001100456789',
     bankAccountName: 'NGUYEN VAN AN',
     personType: 'CTV',
@@ -54,14 +66,19 @@ export const INITIAL_PEOPLE = [
   },
   {
     id: 'P-002',
+    genderTitle: 'Bà',
     fullName: 'Trần Thị Bích',
     phone: '0912345678',
     email: 'bich.tran@genkifami.vn',
     dateOfBirth: '1993-08-20',
-    address: '45 Lê Duẩn, Quận 1, TP. Hồ Chí Minh',
+    address: '45 Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
+    currentAddress: 'Chung cư Masteri Thảo Điền, Quận 2, TP. Thủ Đức, TP. HCM',
     identityNumber: '079093012999',
+    identityDate: '20/09/2021',
+    identityPlace: 'Cục Cảnh sát QLHC về TTXH',
     taxNumber: '8098765432',
     bankName: 'Techcombank',
+    bankBranch: 'Chi nhánh Sài Gòn',
     bankAccount: '19034567890123',
     bankAccountName: 'TRAN THI BICH',
     personType: 'EMPLOYEE',
@@ -76,14 +93,19 @@ export const INITIAL_PEOPLE = [
   },
   {
     id: 'P-003',
+    genderTitle: 'Ông',
     fullName: 'Lê Văn Cường',
     phone: '0987654321',
     email: 'cuong.le@genkifami.vn',
     dateOfBirth: '1988-11-05',
     address: '78 Nguyễn Thị Minh Khai, Hải Châu, Đà Nẵng',
+    currentAddress: '78 Nguyễn Thị Minh Khai, Hải Châu, Đà Nẵng',
     identityNumber: '048088001122',
+    identityDate: '10/03/2022',
+    identityPlace: 'Cục Cảnh sát QLHC về TTXH',
     taxNumber: '8123456789',
     bankName: 'BIDV',
+    bankBranch: 'Chi nhánh Hải Châu - Đà Nẵng',
     bankAccount: '56110001234567',
     bankAccountName: 'LE VAN CUONG',
     personType: 'EMPLOYEE',
@@ -98,14 +120,19 @@ export const INITIAL_PEOPLE = [
   },
   {
     id: 'P-004',
+    genderTitle: 'Bà',
     fullName: 'Phạm Thị Dung',
     phone: '0934567890',
     email: 'dung.pham@genkifami.vn',
     dateOfBirth: '1990-02-18',
     address: '15 Trần Hưng Đạo, Hoàn Kiếm, Hà Nội',
+    currentAddress: '15 Trần Hưng Đạo, Hoàn Kiếm, Hà Nội',
     identityNumber: '001090003344',
+    identityDate: '12/12/2021',
+    identityPlace: 'Cục Cảnh sát QLHC về TTXH',
     taxNumber: '8234567890',
     bankName: 'MB Bank',
+    bankBranch: 'Chi nhánh Trần Hưng Đạo',
     bankAccount: '0680101234567',
     bankAccountName: 'PHAM THI DUNG',
     personType: 'EMPLOYEE',
@@ -120,14 +147,19 @@ export const INITIAL_PEOPLE = [
   },
   {
     id: 'P-005',
+    genderTitle: 'Ông',
     fullName: 'Hoàng Văn Em',
     phone: '0909998888',
     email: 'em.hoang@genkifami.vn',
     dateOfBirth: '1982-05-10',
     address: '88 Nam Kỳ Khởi Nghĩa, Quận 3, TP. Hồ Chí Minh',
+    currentAddress: '88 Nam Kỳ Khởi Nghĩa, Quận 3, TP. Hồ Chí Minh',
     identityNumber: '079082005566',
+    identityDate: '05/01/2021',
+    identityPlace: 'Cục Cảnh sát QLHC về TTXH',
     taxNumber: '8345678901',
     bankName: 'Vietcombank',
+    bankBranch: 'Chi nhánh TP. HCM',
     bankAccount: '007100999888',
     bankAccountName: 'HOANG VAN EM',
     personType: 'EMPLOYEE',
@@ -142,14 +174,19 @@ export const INITIAL_PEOPLE = [
   },
   {
     id: 'P-006',
+    genderTitle: 'Công ty',
     fullName: 'Công Ty Dược Phẩm An Khang (Đại Lý)',
     phone: '02838383838',
     email: 'lienhe@ankhangpharma.com',
     dateOfBirth: '',
     address: '256 Nguyễn Trãi, Quận 5, TP. Hồ Chí Minh',
+    currentAddress: '256 Nguyễn Trãi, Quận 5, TP. Hồ Chí Minh',
     identityNumber: '',
+    identityDate: '',
+    identityPlace: '',
     taxNumber: '0301234567',
     bankName: 'ACB',
+    bankBranch: 'Chi nhánh Chợ Lớn',
     bankAccount: '8888999912',
     bankAccountName: 'CTY CP DUOC PHAM AN KHANG',
     personType: 'BUSINESS_PARTNER',
@@ -164,14 +201,19 @@ export const INITIAL_PEOPLE = [
   },
   {
     id: 'P-007',
+    genderTitle: 'Ông',
     fullName: 'Quản Trị Viên Hệ Thống',
     phone: '0900000000',
     email: 'admin@genkifami.vn',
     dateOfBirth: '1990-01-01',
     address: 'Trụ sở Genki Fami',
+    currentAddress: 'Trụ sở Genki Fami',
     identityNumber: '001090000001',
+    identityDate: '01/01/2021',
+    identityPlace: 'Cục Cảnh sát QLHC về TTXH',
     taxNumber: '8000000001',
     bankName: 'Vietcombank',
+    bankBranch: 'Hà Nội',
     bankAccount: '001100000001',
     bankAccountName: 'ADMIN GENKI',
     personType: 'EMPLOYEE',
@@ -266,9 +308,97 @@ export const INITIAL_CUSTOMERS = [
 
 export const INITIAL_TEMPLATES = [
   {
+    id: 'TPL-HTKD',
+    name: 'Hợp Đồng Hợp Tác Kinh Doanh (Chuẩn Genki Fami)',
+    description: 'Mẫu chuẩn trích xuất từ hợp đồng thực tế Genki Fami: Cơ chế PCB + PKT, KPI tháng, Thưởng lũy tiến %, Thưởng Quý, Thưởng Năm.',
+    category: 'Hợp Tác Kinh Doanh',
+    active: true,
+    templateContent: `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+---o0o---
+
+HỢP ĐỒNG HỢP TÁC KINH DOANH
+Số: {{contract_code}}
+
+- Căn cứ Bộ luật Dân sự số 91/2015/QH13 đã được Quốc hội nước Cộng hòa Xã hội Chủ nghĩa Việt Nam thông qua ngày 24/11/2015 và có hiệu lực từ ngày 01/01/2017;
+- Căn cứ nhu cầu và khả năng của hai bên.
+
+Hôm nay, ngày {{contract_sign_day}} tháng {{contract_sign_month}} năm {{contract_sign_year}}, tại Văn phòng Công ty Cổ phần Genki Fami Việt Nam, chúng tôi gồm có:
+
+BÊN A (Khách hàng): CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM
+- Đại diện: Ông LÊ TRÍ NAM - Chức vụ: Giám đốc Kinh Doanh
+- Địa chỉ: Tầng 4, Tòa nhà Detech, Số 8 Tôn Thất Thuyết, Mỹ Đình 2, Nam Từ Liêm, Hà Nội
+- Mã số thuế: 0109405781
+- Điện thoại: 024.6291.6888
+
+BÊN B (Chuyên gia/Đối tác): {{gender_title}} {{full_name}}
+- Ngày sinh: {{date_of_birth}}
+- CCCD số: {{identity_number}}   Ngày cấp: {{identity_date}}   Nơi cấp: {{identity_place}}
+- Địa chỉ thường trú: {{address}}
+- Nơi ở hiện tại: {{current_address}}
+- Điện thoại: {{phone}}   Email: {{email}}
+- Mã số thuế: {{tax_number}}
+- Số tài khoản: {{bank_account}}   Tại Ngân hàng: {{bank_name}} - Chi nhánh {{bank_branch}}
+
+Hai bên cùng thỏa thuận và nhất trí ký kết Hợp đồng Hợp tác Kinh doanh với các điều khoản sau:
+
+ĐIỀU 1. NỘI DUNG VÀ PHẠM VI CÔNG VIỆC
+1. Bên A đồng ý hợp tác và Bên B đồng ý nhận thực hiện công việc tư vấn, phát triển thị trường, kết nối đối tác phân phối sản phẩm thực phẩm bảo vệ sức khỏe và dinh dưỡng cao cấp thương hiệu Genki Fami Nhật Bản.
+2. Địa bàn phát triển kinh doanh: {{territory}}
+3. Mục tiêu công việc: Xây dựng mạng lưới nhà thuốc, đại lý và khách hàng chiến lược; đạt chỉ tiêu KPI theo thỏa thuận.
+
+ĐIỀU 2. THỜI HẠN HỢP ĐỒNG
+1. Hợp đồng có hiệu lực từ ngày {{start_date}} đến hết ngày {{end_date}}.
+2. Thời gian thử thách năng lực thực tế: {{probation_months}} tháng kể từ ngày bắt đầu có hiệu lực.
+3. Hết thời hạn hợp đồng, nếu hai bên có nhu cầu tiếp tục hợp tác sẽ tiến hành gia hạn bằng phụ lục hoặc hợp đồng mới.
+
+ĐIỀU 3. QUYỀN VÀ NGHĨA VỤ CỦA CÁC BÊN
+1. Quyền và nghĩa vụ của Bên A:
+- Cung cấp đầy đủ thông tin, hồ sơ công bố chất lượng sản phẩm, hóa đơn và chính sách bán hàng.
+- Thanh toán đầy đủ thù lao và các khoản thưởng kinh doanh cho Bên B theo đúng quy định tại Phụ Lục 01.
+- Khấu trừ thuế Thu nhập cá nhân (TNCN) theo quy định của pháp luật trước khi chi trả.
+2. Quyền và nghĩa vụ của Bên B:
+- Thực hiện công việc đúng cam kết, giữ gìn uy tín và hình ảnh thương hiệu Genki Fami.
+- Tuân thủ bảng giá niêm yết và chính sách chiết khấu của Công ty, không bán phá giá dưới mọi hình thức.
+- Báo cáo kết quả tiếp cận thị trường và danh sách khách hàng định kỳ cho Quản lý vùng.
+
+ĐIỀU 4. THÙ LAO VÀ PHƯƠNG THỨC THANH TOÁN
+1. Cơ chế chi trả thù lao cố định (PCB), phí hỗ trợ khai thác (PKT), chỉ tiêu doanh thu KPI tháng, thang thưởng bậc thang doanh số, thưởng Quý và thưởng Năm được quy định chi tiết tại Phụ Lục 01 đính kèm.
+2. Phương thức thanh toán: Chuyển khoản ngân hàng vào tài khoản của Bên B vào ngày 10-15 hàng tháng.
+3. Hợp đồng này là hợp đồng dịch vụ theo Bộ luật Dân sự, không cấu thành quan hệ lao động giữa hai bên.
+
+ĐIỀU 5. ĐIỀU KHOẢN THI HÀNH
+1. Hợp đồng có hiệu lực kể từ ngày ký. Mọi sửa đổi, bổ sung phải được lập thành văn bản (Phụ lục hợp đồng).
+2. Trường hợp phát sinh tranh chấp, hai bên ưu tiên thương lượng giải quyết trên tinh thần hợp tác. Nếu không tự giải quyết được, tranh chấp sẽ được đưa ra Tòa án nhân dân có thẩm quyền tại Hà Nội.
+3. Hợp đồng được lập thành 02 (hai) bản có giá trị pháp lý như nhau, mỗi bên giữ 01 (một) bản.
+
+----------------------------------------------------------------------------------------------------
+PHỤ LỤC 01: CƠ CHẾ CHI TRẢ THÙ LAO VÀ THƯỞNG KINH DOANH
+(Ban hành kèm theo Hợp đồng số: {{contract_code}})
+
+1. Phí dịch vụ cơ bản (PCB): {{salary}} VNĐ/tháng
+   (Bằng chữ: {{salary_in_words}})
+2. Phí hỗ trợ khai thác thị trường (PKT): {{allowance}} VNĐ/tháng
+   (Bằng chữ: {{allowance_in_words}})
+3. Chỉ tiêu doanh thu KPI tối thiểu: {{kpi_target}} VNĐ/tháng
+   (Bằng chữ: {{kpi_target_in_words}})
+4. Cơ chế thưởng theo bậc doanh thu đạt chuẩn tháng:
+{{bonus_tiers_text}}
+5. Cơ chế thưởng Quý: Bên B được thưởng {{quarter_bonus_rate}}% trên tổng doanh thu thực tế của cả quý khi doanh số quý đạt tối thiểu 500.000.000 VNĐ.
+6. Cơ chế thưởng Năm: Bên B được thưởng {{year_bonus_rate}}% trên tổng doanh số lũy kế cả năm khi hoàn thành xuất sắc chỉ tiêu và có thời gian công tác từ 6 tháng trở lên trong năm tài chính.
+
+          ĐẠI DIỆN BÊN A                                         ĐẠI DIỆN BÊN B
+   (Ký, ghi rõ họ tên và đóng dấu)                           (Ký và ghi rõ họ tên)
+
+
+
+             LÊ TRÍ NAM                                          {{full_name}}`
+  },
+  {
     id: 'TPL-CTV',
     name: 'Hợp Đồng Hợp Tác Bán Hàng (CTV)',
     description: 'Áp dụng cho cộng tác viên phát triển mạng lưới nhà thuốc',
+    category: 'Cộng Tác Viên',
     active: true,
     templateContent: `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
 Độc lập - Tự do - Hạnh phúc
@@ -308,6 +438,7 @@ HAI BÊN THỎA THUẬN CÁC ĐIỀU KHOẢN SAU:
     id: 'TPL-STAFF',
     name: 'Hợp Đồng Lao Động Nhân Viên Kinh Doanh',
     description: 'Hợp đồng lao động chính thức cho Sales Staff',
+    category: 'Lao Động Chính Thức',
     active: true,
     templateContent: `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
 Độc lập - Tự do - Hạnh phúc
@@ -329,6 +460,32 @@ Người lao động: {{full_name}} (CCCD: {{identity_number}})
 ];
 
 export const INITIAL_CONTRACTS = [
+  {
+    id: 'CTR-2026-HTKD-001',
+    contractCode: '20260601_HĐHT - Nguyễn Văn An_HN',
+    personId: 'P-001',
+    contractType: 'HTKD',
+    templateId: 'TPL-HTKD',
+    startDate: '2026-06-01',
+    endDate: '2027-05-31',
+    salary: 8000000,
+    allowance: 7000000,
+    travelAllowance: 0,
+    kpiTargetRevenue: 100000000,
+    probationMonths: 3,
+    quarterBonusRate: 0.5,
+    yearBonusRate: 0.2,
+    bonusTiers: DEFAULT_BONUS_TIERS,
+    commissionDescription: 'Thưởng bậc thang tháng 1.0% - 4.0% + Thưởng Quý 0.5% + Thưởng Năm 0.2%',
+    targetDescription: 'Doanh số tháng tối thiểu 100.000.000đ; mở mới tối thiểu 5 điểm bán dược phẩm/tháng',
+    territoryDescription: 'Thị trường Hà Nội và các tỉnh Đồng Bằng Sông Hồng',
+    additionalTerms: 'Tuân thủ quy chuẩn hình ảnh thương hiệu và bảng giá niêm yết của Genki Fami.',
+    status: 'ACTIVE',
+    createdBy: 'P-003',
+    approvedBy: 'P-005',
+    approvedAt: '2026-05-28T10:00:00.000Z',
+    driveFolderUrl: 'https://drive.google.com/drive/folders/genki-contract-p001'
+  },
   {
     id: 'CTR-2026-0001',
     contractCode: 'CTR-2026-0001',

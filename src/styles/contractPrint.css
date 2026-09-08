@@ -1,0 +1,295 @@
+/* Contract A4 Paper & Print Styling */
+
+.contract-paper-wrapper {
+  background-color: #525659;
+  padding: 30px 16px;
+  overflow-y: auto;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: var(--radius-md);
+}
+
+.contract-paper {
+  width: 100%;
+  max-width: 210mm;
+  min-height: 297mm;
+  background-color: #ffffff;
+  color: #111827;
+  padding: 25mm 20mm 20mm 30mm;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  font-family: "Times New Roman", Times, Georgia, serif;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: justify;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+}
+
+.contract-paper-appendix {
+  page-break-before: always;
+  break-before: page;
+}
+
+.cp-national-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.cp-country {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cp-motto {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.cp-divider {
+  width: 120px;
+  height: 1px;
+  background-color: #111827;
+  margin: 6px auto 0;
+}
+
+.cp-title-area {
+  text-align: center;
+  margin: 24px 0 20px;
+}
+
+.cp-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.cp-code {
+  font-size: 13px;
+  font-style: italic;
+  color: #4b5563;
+}
+
+.cp-preamble {
+  font-style: italic;
+  margin-bottom: 16px;
+}
+
+.cp-party-section {
+  margin-bottom: 16px;
+}
+
+.cp-party-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+.cp-party-field {
+  margin-bottom: 2px;
+}
+
+.cp-article-title {
+  font-weight: 700;
+  margin-top: 18px;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.cp-article-text {
+  text-indent: 1.2cm;
+  margin-bottom: 6px;
+}
+
+.cp-signatures-table {
+  width: 100%;
+  margin-top: 36px;
+  border-collapse: collapse;
+}
+
+.cp-signatures-table td {
+  width: 50%;
+  text-align: center;
+  vertical-align: top;
+}
+
+.cp-signature-role {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cp-signature-note {
+  font-size: 12px;
+  font-style: italic;
+  color: #6b7280;
+  margin-bottom: 70px;
+}
+
+.cp-signature-name {
+  font-weight: 700;
+}
+
+/* Bảng phụ lục có viền */
+.cp-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 13px;
+}
+
+.cp-data-table th,
+.cp-data-table td {
+  border: 1px solid #9ca3af;
+  padding: 8px 10px;
+}
+
+.cp-data-table th {
+  background-color: #f3f4f6;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Tab Navigation for Contracts */
+.contracts-tabs {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.contract-tab-btn {
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.contract-tab-btn:hover {
+  color: var(--gf-primary);
+}
+
+.contract-tab-btn.active {
+  color: var(--gf-primary);
+  border-bottom-color: var(--gf-primary);
+}
+
+/* Template Card Library */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.template-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all var(--transition-fast);
+}
+
+.template-card:hover {
+  border-color: var(--gf-primary);
+  box-shadow: 0 4px 16px rgba(0, 105, 100, 0.1);
+}
+
+.template-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.template-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  background-color: var(--gf-primary-light);
+  color: var(--gf-primary);
+}
+
+/* In ấn qua Window Print */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .role-switcher-bar,
+  .top-header,
+  .sidebar,
+  .modal-header,
+  .modal-footer,
+  .contracts-tabs,
+  .header-actions,
+  .no-print {
+    display: none !important;
+  }
+
+  .modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .modal-container {
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .contract-paper-wrapper {
+    background: transparent !important;
+    padding: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .contract-paper,
+  .contract-paper * {
+    visibility: visible !important;
+  }
+
+  .contract-paper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .contract-paper-appendix {
+    page-break-before: always !important;
+    break-before: page !important;
+    padding-top: 20mm !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 20mm 15mm 20mm 25mm;
+  }
+}

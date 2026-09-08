@@ -7,9 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/settlement.test.js tests/workflow.test.js tests/permissions.test.js"
+    "test": "node --test tests/settlement.test.js tests/workflow.test.js tests/permissions.test.js tests/htkdTemplate.test.js"
   },
   "dependencies": {
+    "docx": "^9.7.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
