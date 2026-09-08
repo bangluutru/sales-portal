@@ -33,10 +33,137 @@ export default function ContractMiniDocEditor({
 
   const isHtkd = template?.id === 'TPL-HTKD' || contract.contractType === 'HTKD';
 
+  // Zoom Controls state (75%, 90%, 100%, 125%, 150%)
+  const [zoomLevel, setZoomLevel] = useState(1.0);
+  const zoomLevels = [
+    { value: 0.75, label: '75%' },
+    { value: 0.9, label: '90%' },
+    { value: 1.0, label: '100% (Chuẩn)' },
+    { value: 1.25, label: '125%' },
+    { value: 1.5, label: '150%' }
+  ];
+
+  const handleZoomIn = () => {
+    const idx = zoomLevels.findIndex(z => z.value === zoomLevel);
+    if (idx < zoomLevels.length - 1) setZoomLevel(zoomLevels[idx + 1].value);
+  };
+
+  const handleZoomOut = () => {
+    const idx = zoomLevels.findIndex(z => z.value === zoomLevel);
+    if (idx > 0) setZoomLevel(zoomLevels[idx - 1].value);
+  };
+
+  // Page Navigator state
+  const [activePageTab, setActivePageTab] = useState('page1');
+  const scrollToPage = (pageId) => {
+    setActivePageTab(pageId);
+    const target = pageId === 'page1' ? page1Ref.current : page2Ref.current;
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Document live statistics
+  const [docStats, setDocStats] = useState({ words: 0, chars: 0 });
+  const updateDocStats = () => {
+    if (docContainerRef.current) {
+      const text = docContainerRef.current.innerText || '';
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      const chars = text.length;
+      setDocStats({ words, chars });
+    }
+  };
+
+  // Active Formatting state for toolbar
+  const [formatState, setFormatState] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    alignLeft: false,
+    alignCenter: false,
+    alignJustify: false
+  });
+
+  const checkFormatting = () => {
+    if (!isEditMode) return;
+    try {
+      setFormatState({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+        alignLeft: document.queryCommandState('justifyLeft'),
+        alignCenter: document.queryCommandState('justifyCenter'),
+        alignJustify: document.queryCommandState('justifyFull')
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  // Find & Replace state & functions
+  const [showFindReplace, setShowFindReplace] = useState(false);
+  const [findText, setFindText] = useState('');
+  const [replaceText, setReplaceText] = useState('');
+
+  const handleFindNext = () => {
+    if (!findText.trim()) return;
+    if (window.find) {
+      const found = window.find(findText, false, false, true, false, true, false);
+      if (!found) {
+        const wrapped = window.find(findText, false, false, true, false, false, false);
+        if (!wrapped) {
+          showFeedback(`Không tìm thấy từ khóa: "${findText}"`, true);
+        }
+      }
+    }
+  };
+
+  const handleReplaceCurrent = () => {
+    if (!isEditMode) {
+      showFeedback('Vui lòng bật Chế Độ Chỉnh Sửa để thay thế văn bản', true);
+      return;
+    }
+    const selection = window.getSelection();
+    if (selection && selection.toString().toLowerCase() === findText.toLowerCase()) {
+      executeCommand('insertText', replaceText);
+      setIsDirty(true);
+      updateDocStats();
+      handleFindNext();
+    } else {
+      handleFindNext();
+    }
+  };
+
+  const handleReplaceAll = () => {
+    if (!isEditMode) {
+      showFeedback('Vui lòng bật Chế Độ Chỉnh Sửa để thay thế văn bản', true);
+      return;
+    }
+    if (!docContainerRef.current || !findText.trim()) return;
+    const editables = docContainerRef.current.querySelectorAll('.editable-zone, .editable-cell');
+    let count = 0;
+    editables.forEach(el => {
+      if (el.innerText.toLowerCase().includes(findText.toLowerCase())) {
+        const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        el.innerHTML = el.innerHTML.replace(regex, replaceText);
+        count++;
+      }
+    });
+    if (count > 0) {
+      setIsDirty(true);
+      updateDocStats();
+      showFeedback(`✓ Đã thay thế thành công ở ${count} vị trí`);
+    } else {
+      showFeedback(`Không tìm thấy "${findText}" trong các ô có thể chỉnh sửa`, true);
+    }
+  };
+
   // Executive formatting command helper
   const executeCommand = (command, value = null) => {
     document.execCommand(command, false, value);
     setIsDirty(true);
+    updateDocStats();
+    checkFormatting();
   };
 
   // Add new article dynamically into Page 1
@@ -179,11 +306,57 @@ export default function ContractMiniDocEditor({
       editables.forEach(el => {
         el.setAttribute('contenteditable', isEditMode ? 'true' : 'false');
         if (isEditMode) {
-          el.oninput = () => setIsDirty(true);
+          el.oninput = () => {
+            setIsDirty(true);
+            updateDocStats();
+          };
         }
       });
     }
   }, [isEditMode]);
+
+  // Initial stats calculation
+  useEffect(() => {
+    updateDocStats();
+  }, [contract]);
+
+  // Listen to selection changes for active toolbar formatting
+  useEffect(() => {
+    document.addEventListener('selectionchange', checkFormatting);
+    return () => document.removeEventListener('selectionchange', checkFormatting);
+  }, [isEditMode]);
+
+  // Listen to keyboard shortcut Ctrl+F / Cmd+F for Find & Replace
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setShowFindReplace(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // IntersectionObserver to auto-highlight active page in navigator
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (entry.target === page1Ref.current) setActivePageTab('page1');
+            if (entry.target === page2Ref.current) setActivePageTab('page2');
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    if (page1Ref.current) observer.observe(page1Ref.current);
+    if (page2Ref.current) observer.observe(page2Ref.current);
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="modal-overlay">
@@ -304,6 +477,137 @@ export default function ContractMiniDocEditor({
           </div>
         </div>
 
+        {/* SUB-BAR / CONTROL RAIL (Page Navigator, Find & Replace, Zoom Controls) */}
+        <div className="mini-doc-subbar no-print">
+          {/* Page Navigator */}
+          <div className="mini-doc-page-nav">
+            <span style={{ fontSize: '11px', color: '#71717a', marginRight: '2px', fontWeight: 600 }}>Trang:</span>
+            <button
+              className={`mini-doc-nav-pill ${activePageTab === 'page1' ? 'active' : ''}`}
+              onClick={() => scrollToPage('page1')}
+              title="Cuộn nhanh đến Trang 1: Hợp Đồng Chính"
+            >
+              📄 Trang 1: Hợp Đồng
+            </button>
+            <button
+              className={`mini-doc-nav-pill ${activePageTab === 'page2' ? 'active' : ''}`}
+              onClick={() => scrollToPage('page2')}
+              title="Cuộn nhanh đến Trang 2: Phụ Lục 01 (Thưởng & KPI)"
+            >
+              📊 Trang 2: Phụ Lục 01
+            </button>
+          </div>
+
+          {/* Quick Find & Replace Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              className={`mini-doc-tool-btn ${showFindReplace ? 'active' : ''}`}
+              onClick={() => setShowFindReplace(prev => !prev)}
+              title="Tìm kiếm & Thay thế từ khóa (Ctrl+F hoặc Cmd+F)"
+              style={{ height: '28px', fontSize: '12px' }}
+            >
+              🔍 Tìm & Thay Thế
+            </button>
+          </div>
+
+          {/* Zoom Control Stepper */}
+          <div className="mini-doc-zoom-ctrl">
+            <button
+              className="mini-doc-zoom-btn"
+              onClick={handleZoomOut}
+              disabled={zoomLevel <= 0.75}
+              title="Thu nhỏ canvas (-)"
+            >
+              −
+            </button>
+            <select
+              className="mini-doc-zoom-select"
+              value={zoomLevel}
+              onChange={(e) => setZoomLevel(Number(e.target.value))}
+              title="Tỷ lệ hiển thị A4"
+            >
+              {zoomLevels.map(z => (
+                <option key={z.value} value={z.value}>
+                  {z.label}
+                </option>
+              ))}
+            </select>
+            <button
+              className="mini-doc-zoom-btn"
+              onClick={handleZoomIn}
+              disabled={zoomLevel >= 1.5}
+              title="Phóng to canvas (+)"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* FIND & REPLACE FLOATING / DRAWER PANEL */}
+        {showFindReplace && (
+          <div className="mini-doc-find-replace no-print">
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--gf-primary)' }}>
+              🔍 Tìm & Thay thế:
+            </span>
+            <input
+              type="text"
+              className="mini-doc-search-input"
+              placeholder="Từ khóa cần tìm..."
+              value={findText}
+              onChange={(e) => setFindText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleFindNext(); }}
+              autoFocus
+            />
+            <button
+              className="mini-doc-tool-btn"
+              onClick={handleFindNext}
+              style={{ height: '28px' }}
+              title="Tìm vị trí tiếp theo (Enter)"
+            >
+              Tìm tiếp
+            </button>
+
+            <span style={{ color: '#71717a' }}>→</span>
+
+            <input
+              type="text"
+              className="mini-doc-search-input"
+              placeholder="Thay thế bằng..."
+              value={replaceText}
+              onChange={(e) => setReplaceText(e.target.value)}
+              disabled={!isEditMode}
+              title={!isEditMode ? 'Bật Chế Độ Chỉnh Sửa để thay thế' : ''}
+            />
+            <button
+              className="mini-doc-tool-btn"
+              onClick={handleReplaceCurrent}
+              disabled={!isEditMode}
+              style={{ height: '28px', color: '#10b981' }}
+              title="Thay thế vị trí đang chọn"
+            >
+              Thay thế
+            </button>
+            <button
+              className="mini-doc-tool-btn"
+              onClick={handleReplaceAll}
+              disabled={!isEditMode}
+              style={{ height: '28px', color: '#0284c7' }}
+              title="Thay thế toàn bộ trong các vùng chỉnh sửa"
+            >
+              Thay thế tất cả
+            </button>
+
+            <button
+              className="mini-doc-tool-btn"
+              onClick={() => setShowFindReplace(false)}
+              style={{ height: '28px', marginLeft: 'auto' }}
+              title="Đóng hộp tìm kiếm"
+            >
+              ✕ Đóng
+            </button>
+          </div>
+        )}
+
         {/* FEEDBACK BANNER */}
         {feedback && (
           <div style={{
@@ -326,21 +630,21 @@ export default function ContractMiniDocEditor({
                 Định dạng:
               </span>
               <button
-                className="mini-doc-tool-btn"
+                className={`mini-doc-tool-btn ${formatState.bold ? 'active' : ''}`}
                 onClick={() => executeCommand('bold')}
                 title="In đậm (Ctrl+B)"
               >
                 <strong>B</strong>
               </button>
               <button
-                className="mini-doc-tool-btn"
+                className={`mini-doc-tool-btn ${formatState.italic ? 'active' : ''}`}
                 onClick={() => executeCommand('italic')}
                 title="In nghiêng (Ctrl+I)"
               >
                 <em>I</em>
               </button>
               <button
-                className="mini-doc-tool-btn"
+                className={`mini-doc-tool-btn ${formatState.underline ? 'active' : ''}`}
                 onClick={() => executeCommand('underline')}
                 title="Gạch chân (Ctrl+U)"
               >
@@ -350,21 +654,21 @@ export default function ContractMiniDocEditor({
               <div className="mini-doc-divider"></div>
 
               <button
-                className="mini-doc-tool-btn"
+                className={`mini-doc-tool-btn ${formatState.alignLeft ? 'active' : ''}`}
                 onClick={() => executeCommand('justifyLeft')}
                 title="Căn trái"
               >
                 Trái
               </button>
               <button
-                className="mini-doc-tool-btn"
+                className={`mini-doc-tool-btn ${formatState.alignCenter ? 'active' : ''}`}
                 onClick={() => executeCommand('justifyCenter')}
                 title="Căn giữa"
               >
                 Giữa
               </button>
               <button
-                className="mini-doc-tool-btn"
+                className={`mini-doc-tool-btn ${formatState.alignJustify ? 'active' : ''}`}
                 onClick={() => executeCommand('justifyFull')}
                 title="Căn đều 2 bên"
               >
@@ -415,8 +719,20 @@ export default function ContractMiniDocEditor({
         )}
 
         {/* DOCUMENT WORKSPACE (A4 Canvas Wrapper) */}
-        <div className="contract-paper-wrapper" style={{ flex: 1, backgroundColor: '#525659' }}>
-          <div ref={docContainerRef} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div className="contract-paper-wrapper" style={{ flex: 1, backgroundColor: '#525659', overflow: 'auto' }}>
+          <div 
+            ref={docContainerRef} 
+            style={{ 
+              width: '100%', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center',
+              transform: `scale(${zoomLevel})`,
+              transformOrigin: 'top center',
+              transition: 'transform 0.15s ease-out',
+              marginBottom: zoomLevel > 1 ? `${(zoomLevel - 1) * 650}px` : '0px'
+            }}
+          >
             
             {/* TRANG 1: HỢP ĐỒNG KINH DOANH CHÍNH */}
             <div className="contract-paper" ref={page1Ref} id="contract-page-1">
@@ -697,6 +1013,30 @@ export default function ContractMiniDocEditor({
               </table>
             </div>
 
+          </div>
+        </div>
+
+        {/* LIVE DOCUMENT STATUS BAR (Footer) */}
+        <div className="mini-doc-status-bar no-print">
+          <div className="mini-doc-status-item">
+            <span>📄 2 Trang A4</span>
+            <span>•</span>
+            <span>{docStats.words.toLocaleString()} từ</span>
+            <span>•</span>
+            <span>{docStats.chars.toLocaleString()} ký tự</span>
+          </div>
+
+          <div className="mini-doc-status-item" style={{ fontSize: '11px', color: '#71717a' }}>
+            Quy chuẩn: A4 dọc (210 × 297 mm) • Lề: Trái 30mm, Phải 20mm (NĐ 30/2020/NĐ-CP)
+          </div>
+
+          <div className="mini-doc-status-item">
+            <span className={`mini-doc-status-badge ${isDirty ? 'unsaved' : 'synced'}`}>
+              {isDirty ? '● Có thay đổi chưa lưu' : '✓ Đã đồng bộ'}
+            </span>
+            <span style={{ fontSize: '11px', color: '#71717a', marginLeft: '6px' }}>
+              Thu phóng: {Math.round(zoomLevel * 100)}%
+            </span>
           </div>
         </div>
       </div>

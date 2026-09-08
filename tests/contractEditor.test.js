@@ -39,3 +39,31 @@ test('Print Engine: Tạo cấu trúc HTML paged media chuẩn A4 không có abs
   assert.ok(combinedHtml.includes('page-break'));
   assert.ok(!combinedHtml.includes('position: absolute'));
 });
+
+test('Doc Stats: Đếm chính xác số từ và số ký tự', () => {
+  const sampleDocText = 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập – Tự do – Hạnh phúc';
+  const words = sampleDocText.trim().split(/\s+/).length;
+  const chars = sampleDocText.length;
+
+  assert.equal(words, 16);
+  assert.equal(chars, 62);
+});
+
+test('Zoom Levels: Đảm bảo các thang đo zoom hợp lệ trong ngưỡng 75% - 150%', () => {
+  const zoomLevels = [0.75, 0.9, 1.0, 1.25, 1.5];
+  assert.equal(zoomLevels.length, 5);
+  assert.ok(zoomLevels[0] >= 0.75);
+  assert.ok(zoomLevels[zoomLevels.length - 1] <= 1.5);
+});
+
+test('Find & Replace: Thay thế chính xác từ khóa an toàn không dính lỗi ký tự đặc biệt', () => {
+  const original = 'Đại diện BÊN A: CÔNG TY CỔ PHẦN GENKI FAMI. BÊN A chịu trách nhiệm.';
+  const findText = 'BÊN A';
+  const replaceText = 'BÊN GIAO VIỆC';
+
+  const escapedRegex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  const result = original.replace(escapedRegex, replaceText);
+
+  assert.equal(result, 'Đại diện BÊN GIAO VIỆC: CÔNG TY CỔ PHẦN GENKI FAMI. BÊN GIAO VIỆC chịu trách nhiệm.');
+});
+

@@ -350,6 +350,192 @@
 }
 
 /* ==========================================================================
+   MINI DOC EDITOR ENHANCEMENT CHROME (ZOOM, STATUS BAR, NAVIGATOR, FIND/REPLACE)
+   ========================================================================== */
+
+/* Sub-bar / Control Rail */
+.mini-doc-subbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background-color: #1f1f23;
+  border-bottom: 1px solid #3f3f46;
+  font-size: 13px;
+  color: #d4d4d8;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Page Navigator Pills */
+.mini-doc-page-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #27272a;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #3f3f46;
+}
+
+.mini-doc-nav-pill {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mini-doc-nav-pill:hover {
+  background-color: #3f3f46;
+  color: #ffffff;
+}
+
+.mini-doc-nav-pill.active {
+  background-color: var(--gf-primary);
+  color: #ffffff;
+}
+
+/* Zoom Control Stepper */
+.mini-doc-zoom-ctrl {
+  display: inline-flex;
+  align-items: center;
+  background-color: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.mini-doc-zoom-btn {
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: #d4d4d8;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.mini-doc-zoom-btn:hover:not(:disabled) {
+  background-color: #3f3f46;
+  color: #ffffff;
+}
+
+.mini-doc-zoom-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.mini-doc-zoom-select {
+  background: transparent;
+  border: none;
+  border-left: 1px solid #3f3f46;
+  border-right: 1px solid #3f3f46;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 6px;
+  cursor: pointer;
+  outline: none;
+}
+
+.mini-doc-zoom-select option {
+  background-color: #18181b;
+  color: #ffffff;
+}
+
+/* Find & Replace Bar */
+.mini-doc-find-replace {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #18181b;
+  border-bottom: 1px solid var(--gf-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: slideDown 0.2s ease-out;
+  flex-wrap: wrap;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mini-doc-search-input {
+  background-color: #27272a;
+  border: 1px solid #3f3f46;
+  color: #ffffff;
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s ease;
+  min-width: 180px;
+}
+
+.mini-doc-search-input:focus {
+  border-color: var(--gf-primary);
+}
+
+/* Bottom Status Bar */
+.mini-doc-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 18px;
+  background-color: #18181b;
+  border-top: 1px solid #3f3f46;
+  font-size: 12px;
+  color: #a1a1aa;
+  flex-shrink: 0;
+}
+
+.mini-doc-status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-doc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mini-doc-status-badge.synced {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mini-doc-status-badge.unsaved {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Search match highlighting */
+.search-highlight {
+  background-color: #fef08a !important;
+  color: #854d0e !important;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ==========================================================================
    WINDOW PRINT / BROWSER PRINT ENGINE RULES (FIXED & ZERO CLIPPING)
    ========================================================================== */
 @media print {
