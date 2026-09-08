@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext.jsx';
-import { formatVND, formatDate, compileContractTemplate, numberToVietnameseWords } from '../utils/helpers.js';
+import { formatVND, formatDate, numberToVietnameseWords } from '../utils/helpers.js';
 import StatusBadge from '../components/StatusBadge.jsx';
 import DriveLinkButton from '../components/DriveLinkButton.jsx';
 import { IconPlus, IconClose, IconContracts } from '../components/Icons.jsx';
 import { exportContractToDocx } from '../utils/contractDocxGenerator.js';
 import { DEFAULT_BONUS_TIERS } from '../utils/constants.js';
+import ContractMiniDocEditor from '../components/ContractMiniDocEditor.jsx';
 import '../styles/contractPrint.css';
 
 export default function ContractsView() {
@@ -15,16 +16,17 @@ export default function ContractsView() {
     contractTemplates,
     currentPerson,
     addContract,
+    updateContract,
     updateContractStatus
   } = useApp();
 
   // Tab navigation: 'list' | 'templates'
   const [activeContractTab, setActiveContractTab] = useState('list');
 
-  // Modals
+  // Modals & Editor states
   const [selectedContract, setSelectedContract] = useState(null);
+  const [editingContract, setEditingContract] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showPaperPreviewModal, setShowPaperPreviewModal] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState(null);
 
   // Loading & export feedback state
@@ -118,12 +120,12 @@ export default function ContractsView() {
     setShowCreateModal(false);
   };
 
-  // Helper xuất DOCX
+  // Helper xuất DOCX nhanh
   const handleExportDocx = async (contractToExport) => {
     if (!contractToExport) return;
     try {
       setIsExportingDocx(true);
-      setExportFeedback('Đang kết xuất tệp tin Microsoft Word (.docx) chuẩn văn bản...');
+      setExportFeedback('Đang kết xuất tệp tin Microsoft Word (.docx)...');
       const person = people.find(p => p.id === contractToExport.personId);
       const template = contractTemplates.find(t => t.id === contractToExport.templateId);
       await exportContractToDocx(contractToExport, person, template);
@@ -138,33 +140,7 @@ export default function ContractsView() {
     }
   };
 
-  // Helper in ấn PDF qua browser
-  const handlePrintPdf = () => {
-    window.print();
-  };
-
-  // Xem trước hợp đồng
-  const activeContractForPreview = selectedContract || {
-    contractCode: '20260601_HĐHT - DRAFT',
-    personId,
-    templateId,
-    startDate,
-    endDate,
-    salary: Number(salary) || 8000000,
-    allowance: Number(allowance) || 7000000,
-    travelAllowance: Number(travelAllowance) || 0,
-    kpiTargetRevenue: Number(kpiTargetRevenue) || 100000000,
-    probationMonths: Number(probationMonths) || 3,
-    quarterBonusRate: Number(quarterBonusRate) || 0.5,
-    yearBonusRate: Number(yearBonusRate) || 0.2,
-    bonusTiers: DEFAULT_BONUS_TIERS,
-    territoryDescription: territoryDescription || 'Hà Nội và các tỉnh phía Bắc',
-    targetDescription,
-    commissionDescription
-  };
-
-  const activeTemplate = contractTemplates.find(t => t.id === activeContractForPreview.templateId) || contractTemplates[0];
-  const targetPerson = people.find(p => p.id === activeContractForPreview.personId) || people[0];
+  const targetPerson = selectedContract ? people.find(p => p.id === selectedContract.personId) : people[0];
 
   return (
     <div className="page-container">
@@ -179,7 +155,7 @@ export default function ContractsView() {
               </h2>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-              Hệ thống chuẩn hóa hợp đồng đối tác, chuyên gia & cộng tác viên theo Bộ luật Dân sự. Tự động điền dữ liệu, tính toán phụ cấp PCB - PKT, xuất file Word (.docx) và in ấn PDF A4.
+              Hệ thống chuẩn hóa hợp đồng đối tác, chuyên gia & cộng tác viên theo Bộ luật Dân sự. Tích hợp Mini Doc Editor chỉnh sửa trực quan, tự động tính toán PCB - PKT, xuất file Word (.docx) và PDF A4 chuẩn vector.
             </p>
           </div>
 
@@ -249,6 +225,13 @@ export default function ContractsView() {
                       <tr key={c.id}>
                         <td>
                           <strong>{c.contractCode}</strong>
+                          {c.hasCustomEdits && (
+                            <div>
+                              <span style={{ fontSize: '10.5px', color: '#d97706', fontWeight: 600 }}>
+                                ✏️ Đã sửa tùy biến
+                              </span>
+                            </div>
+                          )}
                           <div><small style={{ color: 'var(--text-muted)' }}>Tạo bởi: {c.createdBy}</small></div>
                         </td>
                         <td>
@@ -291,20 +274,17 @@ export default function ContractsView() {
                             <button
                               className="btn btn-secondary btn-sm"
                               onClick={() => setSelectedContract(c)}
-                              title="Xem chi tiết và thao tác phê duyệt"
+                              title="Xem chi tiết phê duyệt"
                             >
                               Chi Tiết
                             </button>
                             <button
                               className="btn btn-primary btn-sm"
-                              onClick={() => {
-                                setSelectedContract(c);
-                                setShowPaperPreviewModal(true);
-                              }}
-                              title="Xem bản in A4 và xuất file DOCX/PDF"
+                              onClick={() => setEditingContract(c)}
+                              title="Mở Mini Doc Editor: Xem, chỉnh sửa từng điều khoản và xuất file DOCX/PDF chuẩn"
                               style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                             >
-                              <span>📄 In / DOCX</span>
+                              <span>✏️ Soạn Thảo & In A4</span>
                             </button>
                           </div>
                         </td>
@@ -418,8 +398,8 @@ export default function ContractsView() {
         </div>
       )}
 
-      {/* Modal Chi Tiết Hợp Đồng (Nghiệp vụ + Trình duyệt) */}
-      {selectedContract && !showPaperPreviewModal && (
+      {/* MODAL CHI TIẾT HỢP ĐỒNG (Nghiệp vụ + Phê duyệt) */}
+      {selectedContract && !editingContract && (
         <div className="modal-overlay">
           <div className="modal-container" style={{ maxWidth: '800px' }}>
             <div className="modal-header">
@@ -500,10 +480,14 @@ export default function ContractsView() {
               }}>
                 <button
                   className="btn btn-primary"
-                  onClick={() => setShowPaperPreviewModal(true)}
+                  onClick={() => {
+                    const c = selectedContract;
+                    setSelectedContract(null);
+                    setEditingContract(c);
+                  }}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <span>📄 Mở Bản In Chuẩn A4 & Xuất File</span>
+                  <span>✏️ Mở Mini Doc Editor & Xuất File A4</span>
                 </button>
                 <button
                   className="btn btn-secondary"
@@ -601,321 +585,21 @@ export default function ContractsView() {
         </div>
       )}
 
-      {/* Modal Xem Bản In A4 & Xuất File Chuẩn (Paper Preview Modal) */}
-      {showPaperPreviewModal && (
-        <div className="modal-overlay">
-          <div className="modal-container" style={{ maxWidth: '980px', maxHeight: '95vh', display: 'flex', flexDirection: 'column' }}>
-            <div className="modal-header no-print">
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>
-                  Văn Bản Hợp Đồng (Xem Trước Chuẩn Khổ Giấy A4)
-                </h3>
-                <small style={{ color: 'var(--text-muted)' }}>
-                  Mã: {activeContractForPreview.contractCode} • Đối tác: {targetPerson?.fullName}
-                </small>
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => handleExportDocx(activeContractForPreview)}
-                  disabled={isExportingDocx}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <span>📥 {isExportingDocx ? 'Đang tạo Word...' : 'Xuất File Word (.docx)'}</span>
-                </button>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={handlePrintPdf}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <span>🖨️ In / Xuất PDF (A4)</span>
-                </button>
-                <button className="btn btn-secondary btn-sm" onClick={() => setShowPaperPreviewModal(false)}>
-                  <IconClose size={16} />
-                </button>
-              </div>
-            </div>
-
-            {exportFeedback && (
-              <div className="no-print" style={{
-                padding: '8px 16px',
-                background: exportFeedback.includes('✓') ? '#dcfce7' : '#fef3c7',
-                color: exportFeedback.includes('✓') ? '#166534' : '#92400e',
-                fontSize: '13px',
-                fontWeight: 600
-              }}>
-                {exportFeedback}
-              </div>
-            )}
-
-            {/* Wrapper cuộn trang giấy A4 */}
-            <div className="contract-paper-wrapper">
-              {/* TRANG 1: HỢP ĐỒNG CHÍNH */}
-              <div className="contract-paper" id="contract-paper-content">
-                {/* 1. Quốc hiệu */}
-                <div className="cp-national-header">
-                  <div className="cp-country">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-                  <div className="cp-motto">Độc lập – Tự do – Hạnh phúc</div>
-                  <div className="cp-divider"></div>
-                </div>
-
-                {/* 2. Tiêu đề hợp đồng */}
-                <div className="cp-title-area">
-                  <div className="cp-title">
-                    {activeTemplate?.id === 'TPL-HTKD' ? 'HỢP ĐỒNG HỢP TÁC KINH DOANH' : activeTemplate?.name?.toUpperCase()}
-                  </div>
-                  <div className="cp-code">Số: {activeContractForPreview.contractCode}</div>
-                </div>
-
-                {/* 3. Căn cứ pháp lý */}
-                <div className="cp-preamble">
-                  <div>- Căn cứ Bộ luật Dân sự số 91/2015/QH13 đã được Quốc hội nước Cộng hòa Xã hội Chủ nghĩa Việt Nam thông qua ngày 24/11/2015 và có hiệu lực từ ngày 01/01/2017;</div>
-                  <div>- Căn cứ nhu cầu và năng lực thực tế của hai bên.</div>
-                </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  Hôm nay, ngày {formatDate(activeContractForPreview.startDate)}, tại Văn phòng Công ty Cổ phần Genki Fami Việt Nam, chúng tôi gồm có:
-                </div>
-
-                {/* Bên A */}
-                <div className="cp-party-section">
-                  <div className="cp-party-title">BÊN A (Khách hàng): CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM</div>
-                  <div className="cp-party-field"><strong>Đại diện:</strong> Ông LÊ TRÍ NAM &nbsp;&nbsp;&nbsp;&nbsp; <strong>Chức vụ:</strong> Giám đốc Kinh Doanh</div>
-                  <div className="cp-party-field"><strong>Địa chỉ:</strong> Tầng 4, Tòa nhà Detech, Số 8 Tôn Thất Thuyết, Mỹ Đình 2, Nam Từ Liêm, Hà Nội</div>
-                  <div className="cp-party-field"><strong>Mã số thuế:</strong> 0109405781 &nbsp;&nbsp;&nbsp;&nbsp; <strong>Điện thoại:</strong> 024.6291.6888</div>
-                </div>
-
-                {/* Bên B */}
-                <div className="cp-party-section">
-                  <div className="cp-party-title">
-                    BÊN B (Chuyên gia/Đối tác): {targetPerson?.genderTitle || 'ÔNG/BÀ'} {targetPerson?.fullName?.toUpperCase()}
-                  </div>
-                  <div className="cp-party-field"><strong>Ngày sinh:</strong> {targetPerson?.dateOfBirth ? formatDate(targetPerson.dateOfBirth) : '—'}</div>
-                  <div className="cp-party-field">
-                    <strong>Số CCCD:</strong> {targetPerson?.identityNumber || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
-                    <strong>Ngày cấp:</strong> {targetPerson?.identityDate || '15/06/2021'} &nbsp;&nbsp;&nbsp;&nbsp;
-                    <strong>Nơi cấp:</strong> {targetPerson?.identityPlace || 'Cục Cảnh sát QLHC về TTXH'}
-                  </div>
-                  <div className="cp-party-field"><strong>Địa chỉ thường trú:</strong> {targetPerson?.address || '—'}</div>
-                  <div className="cp-party-field"><strong>Nơi ở hiện tại:</strong> {targetPerson?.currentAddress || targetPerson?.address || '—'}</div>
-                  <div className="cp-party-field">
-                    <strong>Điện thoại:</strong> {targetPerson?.phone || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
-                    <strong>Email:</strong> {targetPerson?.email || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
-                    <strong>Mã số thuế:</strong> {targetPerson?.taxNumber || '—'}
-                  </div>
-                  <div className="cp-party-field">
-                    <strong>Tài khoản ngân hàng:</strong> {targetPerson?.bankAccount} tại {targetPerson?.bankName} ({targetPerson?.bankBranch || 'Hà Nội'})
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '14px', fontStyle: 'italic' }}>
-                  Hai bên cùng thỏa thuận và nhất trí ký kết Hợp đồng với các điều khoản sau:
-                </div>
-
-                {/* Điều 1 */}
-                <div className="cp-article-title">ĐIỀU 1. NỘI DUNG VÀ PHẠM VI CÔNG VIỆC</div>
-                <div className="cp-article-text">
-                  1. Bên A đồng ý hợp tác và Bên B đồng ý nhận thực hiện công việc tư vấn, phát triển thị trường, kết nối đối tác phân phối sản phẩm thực phẩm bảo vệ sức khỏe và dinh dưỡng cao cấp thương hiệu Genki Fami Nhật Bản.
-                </div>
-                <div className="cp-article-text">
-                  2. Địa bàn phát triển kinh doanh: <strong>{activeContractForPreview.territoryDescription || 'Toàn quốc'}</strong>.
-                </div>
-                <div className="cp-article-text">
-                  3. Mục tiêu công việc: Xây dựng mạng lưới nhà thuốc, đại lý và khách hàng chiến lược; đạt chỉ tiêu KPI theo thỏa thuận.
-                </div>
-
-                {/* Điều 2 */}
-                <div className="cp-article-title">ĐIỀU 2. THỜI HẠN HỢP ĐỒNG</div>
-                <div className="cp-article-text">
-                  1. Hợp đồng có hiệu lực từ ngày <strong>{formatDate(activeContractForPreview.startDate)}</strong> đến hết ngày <strong>{formatDate(activeContractForPreview.endDate)}</strong>.
-                </div>
-                <div className="cp-article-text">
-                  2. Thời gian thử thách năng lực thực tế: <strong>{activeContractForPreview.probationMonths || 3} tháng</strong> kể từ ngày bắt đầu có hiệu lực.
-                </div>
-                <div className="cp-article-text">
-                  3. Hết thời hạn hợp đồng, nếu hai bên có nhu cầu tiếp tục hợp tác sẽ tiến hành gia hạn bằng phụ lục hoặc hợp đồng mới.
-                </div>
-
-                {/* Điều 3 */}
-                <div className="cp-article-title">ĐIỀU 3. QUYỀN VÀ NGHĨA VỤ CỦA CÁC BÊN</div>
-                <div className="cp-article-text">
-                  1. Quyền và nghĩa vụ của Bên A: Cung cấp đầy đủ hồ sơ pháp lý sản phẩm, tài liệu chuyên môn, hóa đơn bán hàng; thanh toán thù lao và các khoản thưởng kinh doanh đúng hạn; thực hiện nghĩa vụ khấu trừ thuế TNCN theo quy định pháp luật.
-                </div>
-                <div className="cp-article-text">
-                  2. Quyền và nghĩa vụ của Bên B: Tận tâm thực hiện công việc, bảo vệ hình ảnh thương hiệu Genki Fami; tuân thủ bảng giá niêm yết và chính sách bán lẻ, tuyệt đối không bán phá giá; báo cáo định kỳ kết quả tiếp cận thị trường cho Quản lý vùng.
-                </div>
-
-                {/* Điều 4 */}
-                <div className="cp-article-title">ĐIỀU 4. THÙ LAO VÀ PHƯƠNG THỨC THANH TOÁN</div>
-                <div className="cp-article-text">
-                  1. Cơ chế chi trả thù lao cố định (PCB), phí hỗ trợ khai thác (PKT), chỉ tiêu doanh thu KPI tháng, thang thưởng bậc thang doanh số, thưởng Quý và thưởng Năm được quy định chi tiết tại Phụ Lục 01 đính kèm - là bộ phận cấu thành không thể tách rời của Hợp đồng này.
-                </div>
-                <div className="cp-article-text">
-                  2. Phương thức thanh toán: Chuyển khoản qua tài khoản ngân hàng của Bên B từ ngày 10 đến ngày 15 hàng tháng.
-                </div>
-                <div className="cp-article-text">
-                  3. Hợp đồng này là hợp đồng dịch vụ dân sự, không cấu thành quan hệ lao động theo Bộ luật Lao động.
-                </div>
-
-                {/* Điều 5 */}
-                <div className="cp-article-title">ĐIỀU 5. ĐIỀU KHOẢN THI HÀNH</div>
-                <div className="cp-article-text">
-                  1. Hợp đồng có hiệu lực kể từ ngày ký. Mọi sửa đổi, bổ sung phải được lập thành văn bản (Phụ lục hợp đồng).
-                </div>
-                <div className="cp-article-text">
-                  2. Hợp đồng được lập thành 02 (hai) bản bằng tiếng Việt, có giá trị pháp lý như nhau, mỗi bên giữ 01 (một) bản.
-                </div>
-
-                {/* Chữ ký Hợp đồng chính */}
-                <table className="cp-signatures-table">
-                  <tbody>
-                    <tr>
-                      <td>
-                        <div className="cp-signature-role">ĐẠI DIỆN BÊN A</div>
-                        <div className="cp-signature-note">(Ký, ghi rõ họ tên và đóng dấu)</div>
-                        <div className="cp-signature-name">LÊ TRÍ NAM</div>
-                      </td>
-                      <td>
-                        <div className="cp-signature-role">ĐẠI DIỆN BÊN B</div>
-                        <div className="cp-signature-note">(Ký và ghi rõ họ tên)</div>
-                        <div className="cp-signature-name">{targetPerson?.fullName?.toUpperCase()}</div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* TRANG 2: PHỤ LỤC 01 (CƠ CHẾ THÙ LAO & THƯỞNG) */}
-              <div className="contract-paper contract-paper-appendix">
-                <div className="cp-national-header">
-                  <div className="cp-country">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-                  <div className="cp-motto">Độc lập – Tự do – Hạnh phúc</div>
-                  <div className="cp-divider"></div>
-                </div>
-
-                <div className="cp-title-area">
-                  <div className="cp-title" style={{ fontSize: '16px' }}>
-                    PHỤ LỤC 01: CƠ CHẾ CHI TRẢ THÙ LAO VÀ THƯỞNG KINH DOANH
-                  </div>
-                  <div className="cp-code">
-                    (Ban hành kèm theo Hợp đồng số: {activeContractForPreview.contractCode})
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '14px', fontStyle: 'italic' }}>
-                  Căn cứ thỏa thuận tại Điều 4 của Hợp đồng Hợp tác Kinh doanh, hai bên thống nhất chi tiết mức thù lao, chỉ tiêu KPI và thang thưởng như sau:
-                </div>
-
-                <div style={{ marginBottom: '10px' }}>
-                  <strong>1. Phí dịch vụ cơ bản (PCB):</strong>{' '}
-                  <span style={{ fontWeight: 700, color: '#006964' }}>{formatVND(activeContractForPreview.salary)} / tháng</span>
-                  <br />
-                  <em>(Bằng chữ: {numberToVietnameseWords(activeContractForPreview.salary)})</em>
-                </div>
-
-                <div style={{ marginBottom: '10px' }}>
-                  <strong>2. Phí hỗ trợ khai thác thị trường (PKT):</strong>{' '}
-                  <span style={{ fontWeight: 700 }}>{formatVND(activeContractForPreview.allowance)} / tháng</span>
-                  <br />
-                  <em>(Bằng chữ: {numberToVietnameseWords(activeContractForPreview.allowance)})</em>
-                </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <strong>3. Chỉ tiêu doanh thu KPI tối thiểu:</strong>{' '}
-                  <span style={{ fontWeight: 700, color: '#b45309' }}>{formatVND(activeContractForPreview.kpiTargetRevenue || 100000000)} / tháng</span>
-                  <br />
-                  <em>(Bằng chữ: {numberToVietnameseWords(activeContractForPreview.kpiTargetRevenue || 100000000)})</em>
-                  <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '2px' }}>
-                    * Trường hợp đạt dưới 50% chỉ tiêu Doanh thu tối thiểu: Thu nhập nhận được = PCB.
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '8px', fontWeight: 700 }}>
-                  4. Cơ chế thưởng theo bậc doanh thu đạt chuẩn tháng:
-                </div>
-
-                {/* Bảng bậc thang thưởng tháng */}
-                <table className="cp-data-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '8%' }}>STT</th>
-                      <th style={{ width: '18%' }}>Mức Thưởng</th>
-                      <th>Doanh Số Mục Tiêu</th>
-                      <th style={{ width: '22%' }}>Phụ Cấp</th>
-                      <th style={{ width: '28%' }}>Thưởng Doanh Thu Thực Tế</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td style={{ textAlign: 'center' }}>1</td>
-                      <td><strong>Mức 1</strong></td>
-                      <td>120.000.000 đ ~ 200.000.000 đ</td>
-                      <td style={{ textAlign: 'right' }}>1.000.000 đ</td>
-                      <td style={{ textAlign: 'right' }}><strong>1,0%</strong> Tổng Doanh Thu</td>
-                    </tr>
-                    <tr>
-                      <td style={{ textAlign: 'center' }}>2</td>
-                      <td><strong>Mức 2</strong></td>
-                      <td>201.000.000 đ ~ 300.000.000 đ</td>
-                      <td style={{ textAlign: 'right' }}>2.000.000 đ</td>
-                      <td style={{ textAlign: 'right' }}><strong>1,5%</strong> Tổng Doanh Thu</td>
-                    </tr>
-                    <tr>
-                      <td style={{ textAlign: 'center' }}>3</td>
-                      <td><strong>Mức 3</strong></td>
-                      <td>301.000.000 đ ~ 500.000.000 đ</td>
-                      <td style={{ textAlign: 'right' }}>3.000.000 đ</td>
-                      <td style={{ textAlign: 'right' }}><strong>2,0%</strong> Tổng Doanh Thu</td>
-                    </tr>
-                    <tr>
-                      <td style={{ textAlign: 'center' }}>4</td>
-                      <td><strong>Mức 4</strong></td>
-                      <td>Trên 500.000.000 đ</td>
-                      <td style={{ textAlign: 'right' }}>5.000.000 đ</td>
-                      <td style={{ textAlign: 'right' }}><strong>4,0%</strong> Tổng Doanh Thu</td>
-                    </tr>
-                  </tbody>
-                </table>
-
-                <div style={{ marginTop: '14px', marginBottom: '8px' }}>
-                  <strong>5. Cơ chế thưởng Quý:</strong> Bên B được thưởng <strong>{activeContractForPreview.quarterBonusRate || 0.5}%</strong> trên tổng doanh thu thực tế của cả quý khi doanh số quý đạt tối thiểu 500.000.000 VNĐ.
-                </div>
-
-                <div style={{ marginBottom: '18px' }}>
-                  <strong>6. Cơ chế thưởng Năm:</strong> Bên B được thưởng <strong>{activeContractForPreview.yearBonusRate || 0.2}%</strong> trên tổng doanh số lũy kế cả năm khi hoàn thành xuất sắc chỉ tiêu và có thời gian công tác từ 6 tháng trở lên trong năm tài chính.
-                </div>
-
-                {/* Chữ ký Phụ lục 01 */}
-                <table className="cp-signatures-table" style={{ marginTop: '40px' }}>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <div className="cp-signature-role">ĐẠI DIỆN BÊN A</div>
-                        <div className="cp-signature-note">(Ký, ghi rõ họ tên và đóng dấu)</div>
-                        <div className="cp-signature-name">LÊ TRÍ NAM</div>
-                      </td>
-                      <td>
-                        <div className="cp-signature-role">ĐẠI DIỆN BÊN B</div>
-                        <div className="cp-signature-note">(Ký và ghi rõ họ tên)</div>
-                        <div className="cp-signature-name">{targetPerson?.fullName?.toUpperCase()}</div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="modal-footer no-print">
-              <button className="btn btn-secondary" onClick={() => setShowPaperPreviewModal(false)}>
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* MINI DOC EDITOR MODAL (WYSIWYG A4 Canvas, Editing Toolbar, Isolated Print & PDF Download) */}
+      {editingContract && (
+        <ContractMiniDocEditor
+          contract={editingContract}
+          person={people.find(p => p.id === editingContract.personId) || people[0]}
+          template={contractTemplates.find(t => t.id === editingContract.templateId) || contractTemplates[0]}
+          onClose={() => setEditingContract(null)}
+          onSave={(contractId, updates) => {
+            updateContract(contractId, updates);
+            setEditingContract(prev => prev ? { ...prev, ...updates } : null);
+          }}
+        />
       )}
 
-      {/* Modal Xem Mẫu Template (Text Preview) */}
+      {/* MODAL XEM MẪU TEMPLATE (Text Preview) */}
       {previewTemplate && (
         <div className="modal-overlay">
           <div className="modal-container" style={{ maxWidth: '820px' }}>
@@ -973,7 +657,7 @@ export default function ContractsView() {
         </div>
       )}
 
-      {/* Modal Tạo Hợp Đồng Mới */}
+      {/* MODAL TẠO HỢP ĐỒNG MỚI */}
       {showCreateModal && (
         <div className="modal-overlay">
           <div className="modal-container" style={{ maxWidth: '780px', maxHeight: '90vh', overflowY: 'auto' }}>

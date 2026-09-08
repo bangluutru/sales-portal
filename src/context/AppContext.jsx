@@ -163,6 +163,19 @@ export function AppProvider({ children }) {
     return contract;
   };
 
+  const updateContract = (contractId, updates) => {
+    setContracts(prev => prev.map(c => {
+      if (c.id === contractId) {
+        return {
+          ...c,
+          ...updates,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return c;
+    }));
+  };
+
   const updateContractStatus = (contractId, newStatus, comment = '') => {
     setContracts(prev => prev.map(c => {
       if (c.id === contractId) {
@@ -305,6 +318,7 @@ export function AppProvider({ children }) {
       addCustomer,
       updateCustomer,
       addContract,
+      updateContract,
       updateContractStatus,
       addRequest,
       updateRequestAction,

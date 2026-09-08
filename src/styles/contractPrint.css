@@ -225,7 +225,133 @@
   color: var(--gf-primary);
 }
 
-/* In ấn qua Window Print */
+/* ==========================================================================
+   MINI DOC EDITOR STYLES
+   ========================================================================== */
+
+.mini-doc-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  flex-wrap: wrap;
+}
+
+.mini-doc-tool-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mini-doc-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 10px;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.mini-doc-tool-btn:hover {
+  background-color: var(--bg-subtle);
+  border-color: var(--gf-primary);
+  color: var(--gf-primary);
+}
+
+.mini-doc-tool-btn.active {
+  background-color: var(--gf-primary-light);
+  border-color: var(--gf-primary);
+  color: var(--gf-primary);
+}
+
+.mini-doc-divider {
+  width: 1px;
+  height: 22px;
+  background-color: var(--border-color);
+  margin: 0 4px;
+}
+
+/* Page separator visually between Page 1 and Page 2 in editor */
+.contract-paper-page-separator {
+  width: 100%;
+  max-width: 210mm;
+  text-align: center;
+  margin: 16px 0;
+  position: relative;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.contract-paper-page-separator::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed #71717a;
+  z-index: 1;
+}
+
+.contract-paper-page-separator span {
+  position: relative;
+  z-index: 2;
+  background-color: #3f3f46;
+  padding: 3px 14px;
+  border-radius: 9999px;
+  color: #f4f4f5;
+  letter-spacing: 0.5px;
+}
+
+/* Editable interactive states */
+.editable-zone[contenteditable="true"] {
+  outline: 1px dashed transparent;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  cursor: text;
+}
+
+.editable-zone[contenteditable="true"]:hover {
+  outline-color: var(--gf-primary);
+  background-color: rgba(0, 105, 100, 0.03);
+}
+
+.editable-zone[contenteditable="true"]:focus {
+  outline: 2px solid var(--gf-primary);
+  background-color: rgba(0, 105, 100, 0.05);
+}
+
+.editable-cell[contenteditable="true"] {
+  outline: 1px dashed transparent;
+  cursor: text;
+}
+
+.editable-cell[contenteditable="true"]:hover {
+  outline: 1px dashed var(--gf-primary);
+  background-color: rgba(0, 105, 100, 0.05);
+}
+
+.editable-cell[contenteditable="true"]:focus {
+  outline: 2px solid var(--gf-primary);
+  background-color: rgba(0, 105, 100, 0.08);
+}
+
+/* ==========================================================================
+   WINDOW PRINT / BROWSER PRINT ENGINE RULES (FIXED & ZERO CLIPPING)
+   ========================================================================== */
 @media print {
   body * {
     visibility: hidden;
@@ -238,6 +364,8 @@
   .modal-footer,
   .contracts-tabs,
   .header-actions,
+  .mini-doc-toolbar,
+  .contract-paper-page-separator,
   .no-print {
     display: none !important;
   }
@@ -248,6 +376,7 @@
     padding: 0 !important;
     width: 100% !important;
     height: auto !important;
+    display: block !important;
   }
 
   .modal-container {
@@ -257,6 +386,8 @@
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+    display: block !important;
+    overflow: visible !important;
   }
 
   .contract-paper-wrapper {
@@ -264,6 +395,7 @@
     padding: 0 !important;
     max-height: none !important;
     overflow: visible !important;
+    display: block !important;
   }
 
   .contract-paper,
@@ -272,24 +404,31 @@
   }
 
   .contract-paper {
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: relative !important;
     width: 100% !important;
     max-width: 100% !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    min-height: auto !important;
+    display: block !important;
+    background: transparent !important;
   }
 
   .contract-paper-appendix {
     page-break-before: always !important;
     break-before: page !important;
-    padding-top: 20mm !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  .no-break, table, tr, .cp-signatures-table {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   @page {
     size: A4 portrait;
-    margin: 20mm 15mm 20mm 25mm;
+    margin: 20mm 15mm 20mm 25mm; /* Trên 20mm, Dưới 20mm, Phải 15mm, Trái 25mm chuẩn hành chính */
   }
 }
