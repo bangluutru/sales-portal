@@ -62,14 +62,15 @@ export default function PeopleView() {
 
         <div className="table-responsive">
           <table className="data-table">
+            <caption className="visually-hidden">Danh sách hồ sơ nhân sự và cộng tác viên</caption>
             <thead>
               <tr>
-                <th>Họ & Tên</th>
-                <th>Phân Loại & Vai Trò</th>
-                <th>Khu Vực Phụ Trách</th>
-                <th>Thông Tin Liên Hệ</th>
-                <th>Trạng Thái</th>
-                <th>Thao Tác</th>
+                <th scope="col">Họ & Tên</th>
+                <th scope="col">Phân Loại & Vai Trò</th>
+                <th scope="col">Khu Vực Phụ Trách</th>
+                <th scope="col">Thông Tin Liên Hệ</th>
+                <th scope="col">Trạng Thái</th>
+                <th scope="col">Thao Tác</th>
               </tr>
             </thead>
             <tbody>

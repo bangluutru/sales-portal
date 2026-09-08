@@ -144,12 +144,13 @@ export default function DashboardView() {
               ) : (
                 <div className="table-responsive">
                   <table className="data-table">
+                    <caption className="visually-hidden">Danh sách đề nghị gần đây của tôi</caption>
                     <thead>
                       <tr>
-                        <th>Mã & Tiêu đề</th>
-                        <th>Số tiền</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
+                        <th scope="col">Mã & Tiêu đề</th>
+                        <th scope="col">Số tiền</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -167,6 +168,7 @@ export default function DashboardView() {
                           </td>
                           <td>
                             <button
+                              type="button"
                               className="btn btn-secondary btn-sm"
                               onClick={() => {
                                 setSelectedRequestId(r.id);
@@ -188,25 +190,34 @@ export default function DashboardView() {
             <div className="card">
               <div className="card-header">
                 <span className="card-title">Khách Hàng Tôi Đang Phụ Trách</span>
-                <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('customers')}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setActiveTab('customers')}
+                >
                   Xem danh bạ
                 </button>
               </div>
               {myCustomers.length === 0 ? (
                 <div className="empty-state" style={{ padding: '24px' }}>
                   <p className="empty-desc">Chưa có khách hàng nào được gán cho bạn.</p>
-                  <button className="btn btn-primary btn-sm" onClick={() => setActiveTab('customers')}>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setActiveTab('customers')}
+                  >
                     + Thêm khách hàng mới
                   </button>
                 </div>
               ) : (
                 <div className="table-responsive">
                   <table className="data-table">
+                    <caption className="visually-hidden">Danh sách khách hàng tôi đang phụ trách</caption>
                     <thead>
                       <tr>
-                        <th>Tên Khách Hàng</th>
-                        <th>Khu Vực</th>
-                        <th>Liên Hệ</th>
+                        <th scope="col">Tên Khách Hàng</th>
+                        <th scope="col">Khu Vực</th>
+                        <th scope="col">Liên Hệ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -276,13 +287,14 @@ export default function DashboardView() {
             ) : (
               <div className="table-responsive">
                 <table className="data-table">
+                  <caption className="visually-hidden">Đề nghị tác nghiệp cấp dưới chờ quản lý duyệt</caption>
                   <thead>
                     <tr>
-                      <th>Mã Đề Nghị</th>
-                      <th>Người Đề Xuất</th>
-                      <th>Loại & Tiêu Đề</th>
-                      <th>Số Tiền</th>
-                      <th>Thao Tác Duyệt Nhanh</th>
+                      <th scope="col">Mã Đề Nghị</th>
+                      <th scope="col">Người Đề Xuất</th>
+                      <th scope="col">Loại & Tiêu Đề</th>
+                      <th scope="col">Số Tiền</th>
+                      <th scope="col">Thao Tác Duyệt Nhanh</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -382,13 +394,14 @@ export default function DashboardView() {
             ) : (
               <div className="table-responsive">
                 <table className="data-table">
+                  <caption className="visually-hidden">Hợp đồng chờ Ban Giám Đốc phê duyệt</caption>
                   <thead>
                     <tr>
-                      <th>Mã HĐ</th>
-                      <th>Nhân Sự / CTV</th>
-                      <th>Loại HĐ & Vùng</th>
-                      <th>Mức Thù Lao / Lương</th>
-                      <th>Thao Tác Ký Duyệt</th>
+                      <th scope="col">Mã HĐ</th>
+                      <th scope="col">Nhân Sự / CTV</th>
+                      <th scope="col">Loại HĐ & Vùng</th>
+                      <th scope="col">Mức Thù Lao / Lương</th>
+                      <th scope="col">Thao Tác Ký Duyệt</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -406,12 +419,14 @@ export default function DashboardView() {
                           <td>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <button
+                                type="button"
                                 className="btn btn-success btn-sm"
                                 onClick={() => updateContractStatus(c.id, 'APPROVED', 'Tổng Giám Đốc đã phê duyệt')}
                               >
                                 ✓ Duyệt HĐ
                               </button>
                               <button
+                                type="button"
                                 className="btn btn-secondary btn-sm"
                                 onClick={() => updateContractStatus(c.id, 'REVISION_REQUESTED', 'Yêu cầu điều chỉnh')}
                               >
@@ -439,13 +454,14 @@ export default function DashboardView() {
             ) : (
               <div className="table-responsive">
                 <table className="data-table">
+                  <caption className="visually-hidden">Đề nghị tác nghiệp chờ Giám Đốc duyệt</caption>
                   <thead>
                     <tr>
-                      <th>Mã Đề Nghị</th>
-                      <th>Người Nộp</th>
-                      <th>Loại & Tiêu Đề</th>
-                      <th>Kinh Phí</th>
-                      <th>Thao Tác</th>
+                      <th scope="col">Mã Đề Nghị</th>
+                      <th scope="col">Người Nộp</th>
+                      <th scope="col">Loại & Tiêu Đề</th>
+                      <th scope="col">Kinh Phí</th>
+                      <th scope="col">Thao Tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -536,14 +552,15 @@ export default function DashboardView() {
             ) : (
               <div className="table-responsive">
                 <table className="data-table">
+                  <caption className="visually-hidden">Đề nghị chờ kế toán xử lý chi tiền và hoàn ứng</caption>
                   <thead>
                     <tr>
-                      <th>Mã Đề Nghị</th>
-                      <th>Người Nhận / Đối Tác</th>
-                      <th>Loại & Tiêu Đề</th>
-                      <th>Số Tiền</th>
-                      <th>Trạng Thái</th>
-                      <th>Hành Động Kế Toán</th>
+                      <th scope="col">Mã Đề Nghị</th>
+                      <th scope="col">Người Nhận / Đối Tác</th>
+                      <th scope="col">Loại & Tiêu Đề</th>
+                      <th scope="col">Số Tiền</th>
+                      <th scope="col">Trạng Thái</th>
+                      <th scope="col">Hành Động Kế Toán</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -15,14 +15,71 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Skip Link for Accessibility */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  background: var(--gf-ink);
+  color: var(--gf-secondary);
+  padding: 10px 16px;
+  font-weight: 700;
+  z-index: 9999;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: 16px;
+  outline: 2px solid var(--gf-secondary);
+  outline-offset: 2px;
+}
+
+/* Visually Hidden Utility for Screen Readers */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--gf-ink);
   letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 button, input, select, textarea {
   font-family: inherit;
+}
+
+/* Focus Visible for Keyboard Accessibility */
+:focus-visible {
+  outline: 2px solid var(--gf-primary);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Native Form Accent Color */
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"] {
+  accent-color: var(--gf-primary);
 }
 
 /* App Shell Layout */
@@ -154,12 +211,29 @@ button, input, select, textarea {
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   flex: 1;
   overflow-y: auto;
 }
 
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-list li {
+  margin: 0;
+  padding: 0;
+}
+
 .nav-item {
+  width: 100%;
+  background: transparent;
+  font: inherit;
+  text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -267,10 +341,12 @@ button, input, select, textarea {
   flex-shrink: 0;
 }
 
+.header-title-area h1,
 .header-title-area h2 {
   font-size: 20px;
   font-weight: 700;
   color: var(--gf-ink);
+  line-height: 1.2;
 }
 
 .header-actions {
@@ -865,3 +941,16 @@ button, input, select, textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

@@ -141,12 +141,13 @@ export default function AdminView() {
 
                   <div className="table-responsive">
                     <table className="data-table">
+                      <caption className="visually-hidden">Các bước trong quy trình phê duyệt</caption>
                       <thead>
                         <tr>
-                          <th>Thứ Tự</th>
-                          <th>Tên Bước Quy Trình</th>
-                          <th>Vai Trò Chịu Trách Nhiệm</th>
-                          <th>Yêu Cầu Hành Động</th>
+                          <th scope="col">Thứ Tự</th>
+                          <th scope="col">Tên Bước Quy Trình</th>
+                          <th scope="col">Vai Trò Chịu Trách Nhiệm</th>
+                          <th scope="col">Yêu Cầu Hành Động</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -221,13 +222,14 @@ export default function AdminView() {
 
             <div className="table-responsive">
               <table className="data-table">
+                <caption className="visually-hidden">Danh sách ứng dụng và miniapps vệ tinh</caption>
                 <thead>
                   <tr>
-                    <th>Ứng Dụng Vệ Tinh</th>
-                    <th>Mô Tả Chức Năng</th>
-                    <th>Đường Dẫn URL</th>
-                    <th>Trạng Thái</th>
-                    <th>Thao Tác</th>
+                    <th scope="col">Ứng Dụng Vệ Tinh</th>
+                    <th scope="col">Mô Tả Chức Năng</th>
+                    <th scope="col">Đường Dẫn URL</th>
+                    <th scope="col">Trạng Thái</th>
+                    <th scope="col">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody>

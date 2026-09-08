@@ -196,15 +196,16 @@ export default function OperationsView() {
         ) : (
           <div className="table-responsive">
             <table className="data-table">
+              <caption className="visually-hidden">Danh sách đề nghị tác nghiệp</caption>
               <thead>
                 <tr>
-                  <th>Mã Đề Nghị</th>
-                  <th>Loại Tác Nghiệp</th>
-                  <th>Tiêu Đề & Nội Dung</th>
-                  <th>Người Đề Xuất</th>
-                  <th>Kinh Phí / Số Tiền</th>
-                  <th>Trạng Thái</th>
-                  <th>Thao Tác</th>
+                  <th scope="col">Mã Đề Nghị</th>
+                  <th scope="col">Loại Tác Nghiệp</th>
+                  <th scope="col">Tiêu Đề & Nội Dung</th>
+                  <th scope="col">Người Đề Xuất</th>
+                  <th scope="col">Kinh Phí / Số Tiền</th>
+                  <th scope="col">Trạng Thái</th>
+                  <th scope="col">Thao Tác</th>
                 </tr>
               </thead>
               <tbody>

@@ -111,15 +111,16 @@ export default function ContractsView() {
         ) : (
           <div className="table-responsive">
             <table className="data-table">
+              <caption className="visually-hidden">Danh sách hợp đồng nhân sự và đối tác</caption>
               <thead>
                 <tr>
-                  <th>Mã Hợp Đồng</th>
-                  <th>Nhân Sự / CTV</th>
-                  <th>Loại HĐ & Địa Bàn</th>
-                  <th>Thời Hạn Hiệu Lực</th>
-                  <th>Mức Thù Lao / Lương</th>
-                  <th>Trạng Thái</th>
-                  <th>Thao Tác</th>
+                  <th scope="col">Mã Hợp Đồng</th>
+                  <th scope="col">Nhân Sự / CTV</th>
+                  <th scope="col">Loại HĐ & Địa Bàn</th>
+                  <th scope="col">Thời Hạn Hiệu Lực</th>
+                  <th scope="col">Mức Thù Lao / Lương</th>
+                  <th scope="col">Trạng Thái</th>
+                  <th scope="col">Thao Tác</th>
                 </tr>
               </thead>
               <tbody>

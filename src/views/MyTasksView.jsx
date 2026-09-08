@@ -53,14 +53,15 @@ export default function MyTasksView() {
                 </h4>
                 <div className="table-responsive">
                   <table className="data-table">
+                    <caption className="visually-hidden">Danh sách hợp đồng đang chờ xử lý</caption>
                     <thead>
                       <tr>
-                        <th>Mã Hợp Đồng</th>
-                        <th>Nhân Sự Thụ Hưởng</th>
-                        <th>Loại HĐ</th>
-                        <th>Mức Lương / Thù Lao</th>
-                        <th>Trạng Thái</th>
-                        <th>Xử Lý Nhanh</th>
+                        <th scope="col">Mã Hợp Đồng</th>
+                        <th scope="col">Nhân Sự Thụ Hưởng</th>
+                        <th scope="col">Loại HĐ</th>
+                        <th scope="col">Mức Lương / Thù Lao</th>
+                        <th scope="col">Trạng Thái</th>
+                        <th scope="col">Xử Lý Nhanh</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -80,6 +81,7 @@ export default function MyTasksView() {
                               <div style={{ display: 'flex', gap: '6px' }}>
                                 {role === 'DIRECTOR' && (
                                   <button
+                                    type="button"
                                     className="btn btn-success btn-sm"
                                     onClick={() => updateContractStatus(c.id, 'APPROVED', 'Giám Đốc duyệt trong My Tasks')}
                                   >
@@ -88,6 +90,7 @@ export default function MyTasksView() {
                                 )}
                                 {role === 'MANAGER' && c.status === 'DRAFT' && (
                                   <button
+                                    type="button"
                                     className="btn btn-primary btn-sm"
                                     onClick={() => updateContractStatus(c.id, 'DIRECTOR_REVIEW', 'Manager gửi Giám Đốc')}
                                   >
@@ -95,6 +98,7 @@ export default function MyTasksView() {
                                   </button>
                                 )}
                                 <button
+                                  type="button"
                                   className="btn btn-secondary btn-sm"
                                   onClick={() => {
                                     setSelectedContractId(c.id);
@@ -122,14 +126,15 @@ export default function MyTasksView() {
                 </h4>
                 <div className="table-responsive">
                   <table className="data-table">
+                    <caption className="visually-hidden">Danh sách đề nghị tác nghiệp đang chờ xử lý</caption>
                     <thead>
                       <tr>
-                        <th>Mã Đề Nghị</th>
-                        <th>Người Nộp</th>
-                        <th>Loại & Tiêu Đề</th>
-                        <th>Số Tiền</th>
-                        <th>Trạng Thái</th>
-                        <th>Thao Tác Xử Lý Nhanh</th>
+                        <th scope="col">Mã Đề Nghị</th>
+                        <th scope="col">Người Nộp</th>
+                        <th scope="col">Loại & Tiêu Đề</th>
+                        <th scope="col">Số Tiền</th>
+                        <th scope="col">Trạng Thái</th>
+                        <th scope="col">Thao Tác Xử Lý Nhanh</th>
                       </tr>
                     </thead>
                     <tbody>

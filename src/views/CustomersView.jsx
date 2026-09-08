@@ -94,14 +94,15 @@ export default function CustomersView() {
 
         <div className="table-responsive">
           <table className="data-table">
+            <caption className="visually-hidden">Danh bạ khách hàng toàn hệ thống</caption>
             <thead>
               <tr>
-                <th>Tên Khách Hàng / Đối Tác</th>
-                <th>Khu Vực & Địa Chỉ</th>
-                <th>Người Phụ Trách (Owner)</th>
-                <th>Người Liên Hệ</th>
-                <th>Ghi Chú Tiếp Cận</th>
-                <th>Liên Kết Ngoại</th>
+                <th scope="col">Tên Khách Hàng / Đối Tác</th>
+                <th scope="col">Khu Vực & Địa Chỉ</th>
+                <th scope="col">Người Phụ Trách (Owner)</th>
+                <th scope="col">Người Liên Hệ</th>
+                <th scope="col">Ghi Chú Tiếp Cận</th>
+                <th scope="col">Liên Kết Ngoại</th>
               </tr>
             </thead>
             <tbody>

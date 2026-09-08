@@ -50,6 +50,17 @@ export default function QuickActionsModal() {
   const [shippingAddress, setShippingAddress] = useState('');
   const [recipient, setRecipient] = useState('');
 
+  // Lắng nghe sự kiện bàn phím Escape để đóng modal chuẩn Modern Web Guidance
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && quickActionModalOpen) {
+        setQuickActionModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [quickActionModalOpen, setQuickActionModalOpen]);
+
   // Cập nhật loại đề nghị khi mở modal
   useEffect(() => {
     if (quickActionModalOpen) {
@@ -200,31 +211,51 @@ export default function QuickActionsModal() {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div
+      className="modal-overlay"
+      onClick={() => setQuickActionModalOpen(false)}
+      role="presentation"
+    >
+      <div
+        className="modal-container"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-request-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '20px' }}>{REQUEST_TYPES[requestType]?.icon}</span>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gf-ink)' }}>
+            <span style={{ fontSize: '20px' }} aria-hidden="true">{REQUEST_TYPES[requestType]?.icon}</span>
+            <h3 id="modal-request-title" style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gf-ink)' }}>
               Tạo Đề Nghị Mới
             </h3>
           </div>
           <button
+            type="button"
             className="btn btn-secondary btn-sm"
             onClick={() => setQuickActionModalOpen(false)}
+            aria-label="Đóng cửa sổ đề nghị"
           >
             <IconClose size={16} />
           </button>
         </div>
 
         {/* Tab chuyển đổi 5 loại đề nghị */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-subtle)' }}>
+        <div
+          role="tablist"
+          aria-label="Chọn loại đề nghị tác nghiệp"
+          style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-subtle)' }}
+        >
           {Object.entries(REQUEST_TYPES).map(([typeKey, cfg]) => {
             const isSelected = requestType === typeKey;
             return (
               <button
                 key={typeKey}
                 type="button"
+                role="tab"
+                id={`tab-${typeKey}`}
+                aria-selected={isSelected}
+                aria-controls="qa-form-content"
                 onClick={() => setRequestType(typeKey)}
                 style={{
                   flex: 1,
@@ -242,22 +273,26 @@ export default function QuickActionsModal() {
                   gap: '4px'
                 }}
               >
-                <span>{cfg.icon}</span>
+                <span aria-hidden="true">{cfg.icon}</span>
                 <span>{cfg.label.replace('Đề nghị ', '')}</span>
               </button>
             );
           })}
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} id="qa-form-content" role="tabpanel" aria-labelledby={`tab-${requestType}`}>
           <div className="modal-body">
             {/* Tiêu đề chung */}
             <div className="form-group">
-              <label className="form-label">Tiêu Đề Đề Nghị *</label>
+              <label className="form-label" htmlFor="qa-title">
+                Tiêu Đề Đề Nghị <span aria-hidden="true">*</span>
+              </label>
               <input
                 type="text"
+                id="qa-title"
                 className="form-input"
                 required
+                aria-required="true"
                 placeholder="VD: Công tác Hải Phòng / Tạm ứng vé xe..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -266,8 +301,11 @@ export default function QuickActionsModal() {
 
             {/* Khách hàng liên quan */}
             <div className="form-group">
-              <label className="form-label">Khách Hàng / Đối Tác Liên Quan</label>
+              <label className="form-label" htmlFor="qa-customer">
+                Khách Hàng / Đối Tác Liên Quan
+              </label>
               <select
+                id="qa-customer"
                 className="form-select"
                 value={customerId}
                 onChange={(e) => setCustomerId(e.target.value)}
@@ -286,22 +324,30 @@ export default function QuickActionsModal() {
               <>
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Địa Điểm Đến *</label>
+                    <label className="form-label" htmlFor="qa-destination">
+                      Địa Điểm Đến <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="text"
+                      id="qa-destination"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: Hải Phòng & Quảng Ninh"
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Kinh Phí Dự Kiến (VNĐ) *</label>
+                    <label className="form-label" htmlFor="qa-amount">
+                      Kinh Phí Dự Kiến (VNĐ) <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="number"
+                      id="qa-amount"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: 5000000"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
@@ -311,18 +357,20 @@ export default function QuickActionsModal() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Ngày Bắt Đầu</label>
+                    <label className="form-label" htmlFor="qa-start-date">Ngày Bắt Đầu</label>
                     <input
                       type="date"
+                      id="qa-start-date"
                       className="form-input"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Ngày Kết Thúc</label>
+                    <label className="form-label" htmlFor="qa-end-date">Ngày Kết Thúc</label>
                     <input
                       type="date"
+                      id="qa-end-date"
                       className="form-input"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
@@ -331,11 +379,15 @@ export default function QuickActionsModal() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Mục Đích Công Tác *</label>
+                  <label className="form-label" htmlFor="qa-purpose">
+                    Mục Đích Công Tác <span aria-hidden="true">*</span>
+                  </label>
                   <textarea
+                    id="qa-purpose"
                     className="form-textarea"
                     rows={2}
                     required
+                    aria-required="true"
                     placeholder="Mục tiêu gặp khách hàng, mở rộng nhà thuốc..."
                     value={purpose}
                     onChange={(e) => setPurpose(e.target.value)}
@@ -348,8 +400,11 @@ export default function QuickActionsModal() {
             {requestType === 'ADVANCE' && (
               <>
                 <div className="form-group">
-                  <label className="form-label">Liên Kết Chuyến Công Tác (Nếu Có)</label>
+                  <label className="form-label" htmlFor="qa-related-trip">
+                    Liên Kết Chuyến Công Tác (Nếu Có)
+                  </label>
                   <select
+                    id="qa-related-trip"
                     className="form-select"
                     value={relatedTripId}
                     onChange={(e) => handleSelectRelatedTrip(e.target.value)}
@@ -365,20 +420,25 @@ export default function QuickActionsModal() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Số Tiền Đề Nghị Tạm Ứng (VNĐ) *</label>
+                    <label className="form-label" htmlFor="qa-advance-amount">
+                      Số Tiền Đề Nghị Tạm Ứng (VNĐ) <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="number"
+                      id="qa-advance-amount"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: 5000000"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Ngày Cần Nhận Tiền</label>
+                    <label className="form-label" htmlFor="qa-required-date">Ngày Cần Nhận Tiền</label>
                     <input
                       type="date"
+                      id="qa-required-date"
                       className="form-input"
                       value={requiredDate}
                       onChange={(e) => setRequiredDate(e.target.value)}
@@ -387,11 +447,15 @@ export default function QuickActionsModal() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Thông Tin Tài Khoản Nhận Tạm Ứng *</label>
+                  <label className="form-label" htmlFor="qa-bank-info">
+                    Thông Tin Tài Khoản Nhận Tạm Ứng <span aria-hidden="true">*</span>
+                  </label>
                   <input
                     type="text"
+                    id="qa-bank-info"
                     className="form-input"
                     required
+                    aria-required="true"
                     value={bankInfo}
                     onChange={(e) => setBankInfo(e.target.value)}
                   />
@@ -404,20 +468,25 @@ export default function QuickActionsModal() {
               <>
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Số Tiền Thanh Toán (VNĐ) *</label>
+                    <label className="form-label" htmlFor="qa-pay-amount">
+                      Số Tiền Thanh Toán (VNĐ) <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="number"
+                      id="qa-pay-amount"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: 3200000"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Hạn Thanh Toán</label>
+                    <label className="form-label" htmlFor="qa-due-date">Hạn Thanh Toán</label>
                     <input
                       type="date"
+                      id="qa-due-date"
                       className="form-input"
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
@@ -426,11 +495,15 @@ export default function QuickActionsModal() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Đơn Vị / Người Nhận Thanh Toán *</label>
+                  <label className="form-label" htmlFor="qa-pay-recipient">
+                    Đơn Vị / Người Nhận Thanh Toán <span aria-hidden="true">*</span>
+                  </label>
                   <input
                     type="text"
+                    id="qa-pay-recipient"
                     className="form-input"
                     required
+                    aria-required="true"
                     placeholder="VD: Công ty TNHH In ấn Đông Đô"
                     value={paymentRecipient}
                     onChange={(e) => setPaymentRecipient(e.target.value)}
@@ -438,11 +511,15 @@ export default function QuickActionsModal() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Số Tài Khoản & Ngân Hàng Thụ Hưởng *</label>
+                  <label className="form-label" htmlFor="qa-pay-bank">
+                    Số Tài Khoản & Ngân Hàng Thụ Hưởng <span aria-hidden="true">*</span>
+                  </label>
                   <input
                     type="text"
+                    id="qa-pay-bank"
                     className="form-input"
                     required
+                    aria-required="true"
                     placeholder="VD: Techcombank 190288889999 - CTY IN DONG DO"
                     value={bankInfo}
                     onChange={(e) => setBankInfo(e.target.value)}
@@ -455,10 +532,14 @@ export default function QuickActionsModal() {
             {requestType === 'SETTLEMENT' && (
               <>
                 <div className="form-group">
-                  <label className="form-label">Liên Kết Chuyến Công Tác Cần Quyết Toán *</label>
+                  <label className="form-label" htmlFor="qa-settle-trip">
+                    Liên Kết Chuyến Công Tác Cần Quyết Toán <span aria-hidden="true">*</span>
+                  </label>
                   <select
+                    id="qa-settle-trip"
                     className="form-select"
                     required
+                    aria-required="true"
                     value={relatedTripId}
                     onChange={(e) => handleSelectRelatedTrip(e.target.value)}
                   >
@@ -473,22 +554,30 @@ export default function QuickActionsModal() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Số Tiền Đã Tạm Ứng (VNĐ) *</label>
+                    <label className="form-label" htmlFor="qa-settle-advance">
+                      Số Tiền Đã Tạm Ứng (VNĐ) <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="number"
+                      id="qa-settle-advance"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: 5000000"
                       value={advanceAmount}
                       onChange={(e) => setAdvanceAmount(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Chi Phí Thực Tế Đã Chi (VNĐ) *</label>
+                    <label className="form-label" htmlFor="qa-settle-actual">
+                      Chi Phí Thực Tế Đã Chi (VNĐ) <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="number"
+                      id="qa-settle-actual"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: 4300000"
                       value={actualExpense}
                       onChange={(e) => setActualExpense(e.target.value)}
@@ -498,7 +587,7 @@ export default function QuickActionsModal() {
 
                 {/* Hộp tự động tính toán quyết toán */}
                 {settlementCalc && (
-                  <div className="calc-box">
+                  <div className="calc-box" role="status" aria-live="polite">
                     <div className="calc-row">
                       <span>Số tiền tạm ứng:</span>
                       <strong>{formatVND(advanceAmount)}</strong>
@@ -518,28 +607,39 @@ export default function QuickActionsModal() {
             {/* FORM 5: XUẤT MẪU (SAMPLE) */}
             {requestType === 'SAMPLE' && (
               <>
-                <div style={{ padding: '10px 14px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 'var(--radius-md)', marginBottom: '16px', fontSize: '13px', color: '#065f46' }}>
+                <div
+                  role="note"
+                  style={{ padding: '10px 14px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 'var(--radius-md)', marginBottom: '16px', fontSize: '13px', color: '#065f46' }}
+                >
                   ℹ️ <strong>Lưu ý:</strong> Ứng dụng ghi nhận đề xuất cấp mẫu cho đối tác / nhà thuốc; không quản lý hay trừ kho sản phẩm.
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Tên Sản Phẩm Mẫu *</label>
+                    <label className="form-label" htmlFor="qa-sample-name">
+                      Tên Sản Phẩm Mẫu <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="text"
+                      id="qa-sample-name"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: Viên uống tảo nâu Fucoidan Genki Fami"
                       value={sampleDescription}
                       onChange={(e) => setSampleDescription(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Số Lượng Mẫu *</label>
+                    <label className="form-label" htmlFor="qa-sample-qty">
+                      Số Lượng Mẫu <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="text"
+                      id="qa-sample-qty"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: 5 Lọ / 10 Gói"
                       value={quantity}
                       onChange={(e) => setQuantity(e.target.value)}
@@ -549,22 +649,30 @@ export default function QuickActionsModal() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Địa Chỉ Giao Mẫu *</label>
+                    <label className="form-label" htmlFor="qa-sample-address">
+                      Địa Chỉ Giao Mẫu <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="text"
+                      id="qa-sample-address"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="Địa chỉ nhà thuốc / phòng khám"
                       value={shippingAddress}
                       onChange={(e) => setShippingAddress(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Người Nhận & Số Điện Thoại *</label>
+                    <label className="form-label" htmlFor="qa-sample-recipient">
+                      Người Nhận & Số Điện Thoại <span aria-hidden="true">*</span>
+                    </label>
                     <input
                       type="text"
+                      id="qa-sample-recipient"
                       className="form-input"
                       required
+                      aria-required="true"
                       placeholder="VD: DS. Nguyễn Thị Mai - 0981112233"
                       value={recipient}
                       onChange={(e) => setRecipient(e.target.value)}
@@ -576,22 +684,29 @@ export default function QuickActionsModal() {
 
             {/* Google Drive URL & Ghi chú chung */}
             <div className="form-group" style={{ marginTop: '12px' }}>
-              <label className="form-label">Google Drive Folder URL (Chứng Từ / Ảnh)</label>
+              <label className="form-label" htmlFor="qa-drive-url">
+                Google Drive Folder URL (Chứng Từ / Ảnh)
+              </label>
               <input
                 type="url"
+                id="qa-drive-url"
                 className="form-input"
+                aria-describedby="qa-drive-help"
                 placeholder="https://drive.google.com/drive/folders/..."
                 value={driveFolderUrl}
                 onChange={(e) => setDriveFolderUrl(e.target.value)}
               />
-              <small style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
+              <small id="qa-drive-help" style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
                 Hệ thống chỉ lưu liên kết Google Drive, không lưu file nặng trực tiếp vào cơ sở dữ liệu.
               </small>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Mô Tả / Ghi Chú Chi Tiết</label>
+              <label className="form-label" htmlFor="qa-notes">
+                Mô Tả / Ghi Chú Chi Tiết
+              </label>
               <textarea
+                id="qa-notes"
                 className="form-textarea"
                 rows={2}
                 placeholder="Thông tin bổ sung cho người duyệt..."

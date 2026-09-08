@@ -48,10 +48,13 @@ function MainLayout() {
 
   return (
     <div className="app-container">
+      <a href="#main-content" className="skip-link">
+        Chuyển đến nội dung chính
+      </a>
       <Header title={tabTitles[activeTab] || 'Genki Sales Portal'} />
       <div className="layout-wrapper">
         <Sidebar />
-        <main className="main-content">
+        <main className="main-content" id="main-content" tabIndex="-1">
           {renderCurrentView()}
         </main>
       </div>

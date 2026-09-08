@@ -34,39 +34,46 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" aria-label="Thanh điều hướng bên">
       <div className="sidebar-header">
-        <div className="brand-logo-badge">GF</div>
+        <div className="brand-logo-badge" aria-hidden="true">GF</div>
         <div className="brand-text">
           <span className="brand-title">Genki Fami</span>
           <span className="brand-subtitle">Operations Portal</span>
         </div>
       </div>
 
-      <nav className="sidebar-nav">
-        {navItems.map(item => {
-          const isActive = activeTab === item.id;
-          return (
-            <div
-              key={item.id}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => setActiveTab(item.id)}
-            >
-              <div className="nav-item-left">
-                {item.icon}
-                <span>{item.label}</span>
-              </div>
-              {item.badge && (
-                <span className="nav-badge">{item.badge}</span>
-              )}
-            </div>
-          );
-        })}
+      <nav className="sidebar-nav" aria-label="Điều hướng chính hệ thống">
+        <ul className="nav-list">
+          {navItems.map(item => {
+            const isActive = activeTab === item.id;
+            return (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={`nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => setActiveTab(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <div className="nav-item-left">
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge && (
+                    <span className="nav-badge" aria-label={`${item.badge} mục cần xử lý`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
 
       <div className="sidebar-footer">
         <div className="user-mini-card">
-          <div className="user-avatar">
+          <div className="user-avatar" aria-hidden="true">
             {currentPerson.fullName.charAt(0)}
           </div>
           <div className="user-details">
