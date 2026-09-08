@@ -504,6 +504,141 @@ Ngày nhận việc: {{start_date}}
 Chữ ký: .......................................`
   },
   {
+    id: 'TPL-HDNT',
+    name: 'Hợp Đồng Nguyên Tắc Mua Bán Hàng Hóa',
+    description: 'Mẫu chuẩn HĐNT đại lý & nhà phân phối Genki Fami: Căn cứ Luật Thương mại 2005 & BLDS 2015, chiết khấu thương mại 18%, chính sách công nợ gối đầu đơn đầu tiên, đặt hàng AMIS CRM và Phụ lục bảng giá sản phẩm.',
+    category: 'Hợp Đồng Nguyên Tắc',
+    active: true,
+    templateContent: `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc Lập – Tự Do – Hạnh Phúc
+----------o0o----------
+
+HỢP ĐỒNG NGUYÊN TẮC MUA BÁN HÀNG HÓA
+(V/v: Mua Bán Thực Phẩm Chức Năng & Sữa Dinh Dưỡng Nhật Bản Genki Fami)
+Số: {{contract_code}}
+
+● Căn cứ Bộ Luật Dân Sự số 91/2015/QH13
+● Căn cứ Luật Thương mại số 36/2005/QH11
+● Căn cứ vào nhu cầu và khả năng của hai bên.
+
+Hôm nay, ngày {{contract_sign_day}} tháng {{contract_sign_month}} năm {{contract_sign_year}}, chúng tôi gồm có:
+
+BÊN BÁN (BÊN A): CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM
+- Địa chỉ: Số 107 ngõ 192 Lê Trọng Tấn, Tổ 1, P. Định Công, Q. Hoàng Mai, TP. Hà Nội
+- Điện thoại: 070-333-6633 / 024 6292 8668
+- Mã số thuế: 0109006313
+- Tài khoản: 0851000041236 tại Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank) - CN Hà Thành
+- Đại diện: {{party_a_representative}}     Chức vụ: {{party_a_position}}
+(Sau đây gọi là “Bên A”)
+
+và
+
+BÊN MUA (BÊN B): {{party_b_name}}
+- Địa chỉ: {{party_b_address}}
+- Điện thoại: {{party_b_phone}}
+- Mã số thuế / CCCD: {{party_b_tax_or_cccd}}
+- Tài khoản ngân hàng: {{party_b_bank_account}} tại {{party_b_bank_name}}
+- Đại diện: {{party_b_representative}}     Chức vụ: {{party_b_position}}
+(Sau đây gọi là “Bên B”)
+
+(Bên A và Bên B sau đây được gọi chung là “các Bên” và gọi riêng là “Bên”)
+Sau khi bàn bạc, hai bên cùng thỏa thuận ký kết hợp đồng này với các điều khoản như sau:
+
+ĐIỀU 0: KHÁI NIỆM VÀ ĐỊNH NGHĨA
+Trong Hợp đồng này và các văn bản đính kèm:
+- “Ngày làm việc” được hiểu là tất cả các ngày không bao gồm thứ 7, chủ nhật và các ngày lễ theo quy định của pháp luật Việt Nam.
+- “Giá bán lẻ” được hiểu là mức giá bán trực tiếp cho người tiêu dùng cuối cùng theo bảng giá niêm yết của Bên A.
+- “Giá bán tối thiểu” được hiểu là mức giá thấp nhất mà Bên B được phép phân phối theo quy định bảo hộ thị trường của Bên A.
+- “Giá niêm yết” được hiểu là giá bán do Bên A quy định dùng để thông báo công khai đến khách hàng.
+- “Sản phẩm tương tự” / “Sản phẩm cạnh tranh” được hiểu là sản phẩm có hoạt chất, công dụng tương tự sản phẩm do Bên A cung cấp.
+
+ĐIỀU 1: CHỦNG LOẠI, CHẤT LƯỢNG VÀ QUY CÁCH SẢN PHẨM
+1.1. Chủng loại: Các loại thực phẩm chức năng và sữa dinh dưỡng nhập khẩu chính ngạch từ Nhật Bản theo danh mục đính kèm trong Phụ lục hợp đồng.
+1.2. Nguồn gốc & Tiêu chuẩn: Xuất xứ Nhật Bản, có đầy đủ công bố lưu hành của Cục An toàn thực phẩm - Bộ Y tế, bao bì tem nhãn phụ tiếng Việt và hóa đơn giá trị gia tăng hợp lệ.
+1.3. Hạn sử dụng: Hàng hóa giao cho Bên B còn hạn sử dụng tối thiểu 18 tháng tính từ ngày sản xuất (đối với sản phẩm có date 3 năm) hoặc tối thiểu 12 tháng (đối với sản phẩm có date 2 năm).
+
+ĐIỀU 2: GIÁ SẢN PHẨM, MỨC CHIẾT KHẤU VÀ BẢO HỘ GIÁ
+2.1. Giá cả cụ thể của từng sản phẩm được quy định chi tiết tại Phụ lục đính kèm hợp đồng.
+2.2. Chiết khấu thương mại: Bên A áp dụng mức chiết khấu thương mại cơ bản {{discount_rate}}% trực tiếp trên hóa đơn tính theo giá bán lẻ niêm yết của Bên A.
+2.3. Thay đổi giá: Trong trường hợp giá bán lẻ niêm yết có thay đổi, Bên A sẽ thông báo bằng văn bản cho Bên B trước ít nhất 30 ngày làm việc.
+2.4. Cam kết giá bán lẻ: Bên B cam kết bán lẻ theo bảng giá niêm yết của Bên A. Tuyệt đối không được bán dưới mức giá tối thiểu. Trường hợp Bên B bán phá giá, Bên A có quyền đơn phương chấm dứt hợp đồng ngay lập tức mà không phải bồi thường và áp dụng chế tài vi phạm.
+
+ĐIỀU 3: PHƯƠNG THỨC, QUY TRÌNH ĐẶT HÀNG VÀ GIAO NHẬN
+3.1. Đặt hàng qua AMIS CRM: Bên B thực hiện đặt hàng chính thức thông qua Cổng Đại lý/Hệ thống AMIS CRM do Bên A cung cấp. Đây là kênh chính thức được ưu tiên áp dụng để đảm bảo tính minh bạch và đối chiếu dữ liệu. Trường hợp hệ thống gián đoạn kỹ thuật, đơn đặt hàng được gửi qua email chỉ định.
+3.2. Xác nhận đơn: Trong thời hạn 02 ngày làm việc kể từ khi nhận được đơn hàng, Bên A có trách nhiệm xác nhận hoặc điều chỉnh qua AMIS CRM/email.
+3.3. Giao hàng: Bên A có trách nhiệm giao hàng trong vòng 03 ngày làm việc đến kho của Bên B kể từ khi chấp nhận đơn hàng. Bên A chịu phí vận chuyển đến 01 địa điểm giao hàng đầu tiên do Bên B chỉ định.
+3.4. Kiểm tra hàng hóa: Bên B kiểm tra số lượng, quy cách và tình trạng bao bì ngay khi nhận. Phản hồi sai lệch trong vòng 24 giờ.
+
+ĐIỀU 4: PHƯƠNG THỨC THANH TOÁN VÀ CÔNG NỢ ĐƠN HÀNG ĐẦU TIÊN
+4.1. Đồng tiền thanh toán: Việt Nam đồng (VNĐ).
+4.2. Chính sách công nợ đơn đầu tiên: Bên A cấp hạn mức gối đầu cho Bên B nợ số tiền hàng của đơn hàng đầu tiên là: {{first_order_debt}} VNĐ (Bằng chữ: {{first_order_debt_words}}). Bên B có trách nhiệm thanh toán số tiền này cho Bên A ngay khi kết thúc hoặc thanh lý hợp đồng.
+4.3. Các đơn hàng tiếp theo: Bên B thực hiện thanh toán ngay khi nhận hàng (COD) hoặc chuyển khoản trước khi xuất kho.
+4.4. Phạt chậm trả: Trường hợp quá hạn thanh toán, Bên B chịu lãi chậm trả 0.1%/ngày trên số tiền chậm trả.
+
+ĐIỀU 5: ĐỔI TRẢ HÀNG
+Bên A chấp nhận đổi hàng trong vòng 07 ngày làm việc kể từ khi nhận được thông báo đối với các sản phẩm bao bì móp méo, vỡ hỏng do vận chuyển hoặc lỗi sản xuất, với điều kiện có biên bản giao nhận và hình ảnh/video mở kiện hàng còn nguyên tem niêm phong.
+
+ĐIỀU 6: THÔNG BÁO VÀ KÊNH THÔNG TIN CHÍNH THỨC
+Hai bên thống nhất sử dụng Cổng Đại lý AMIS CRM và Thư điện tử (Email) chính thức để trao đổi đơn hàng, bảng đối chiếu công nợ, phụ lục và xác nhận thanh toán. Mọi văn bản gửi qua email đã đăng ký có giá trị pháp lý ràng buộc.
+
+ĐIỀU 7 & 8: QUYỀN VÀ TRÁCH NHIỆM CỦA BÊN A VÀ BÊN B
+- Bên A: Giao hàng đúng chất lượng, xuất hóa đơn VAT hợp lệ, bảo hộ vùng và hỗ trợ tư liệu truyền thông.
+- Bên B: Bảo quản hàng hóa đúng chuẩn, trưng bày tại điểm bán, bán đúng giá niêm yết, không gạch xóa mã vạch nhãn phụ và thanh toán công nợ đúng hạn.
+
+ĐIỀU 9: SỰ KIỆN BẤT KHẢ KHÁNG
+Thực hiện theo Luật Thương mại và Bộ luật Dân sự Việt Nam (thiên tai, dịch bệnh, chiến tranh, thay đổi chính sách pháp luật).
+
+ĐIỀU 10: ĐƠN PHƯƠNG CHẤM DỨT HỢP ĐỒNG
+Mỗi bên có quyền chấm dứt hợp đồng trước thời hạn bằng thông báo văn bản trước ít nhất 60 ngày. Bên B có nghĩa vụ thanh toán toàn bộ công nợ tồn đọng trước khi thanh lý hợp đồng.
+
+ĐIỀU 11: PHẠT VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI
+11.1. Phạt vi phạm hợp đồng: Mức phạt bằng 8% giá trị phần nghĩa vụ bị vi phạm theo Điều 301 Luật Thương mại 2005.
+11.2. Vi phạm bảo mật & Giá: Trường hợp Bên B tiết lộ bí mật kinh doanh hoặc bán phá giá, Bên B chịu mức phạt 100.000.000 VNĐ (Một trăm triệu đồng) đối với mỗi hành vi vi phạm và bồi thường toàn bộ thiệt hại thực tế phát sinh.
+
+ĐIỀU 12: XỬ LÝ SỰ CỐ VÀ GIẢI QUYẾT TRANH CHẤP
+Mọi tranh chấp phát sinh sẽ được giải quyết trước hết bằng thương lượng. Trường hợp không thỏa thuận được, vụ việc sẽ được đưa ra giải quyết tại Tòa án nhân dân có thẩm quyền tại TP. Hà Nội.
+
+ĐIỀU 13: QUYỀN SỞ HỮU TRÍ TUỆ VÀ BẢO MẬT THÔNG TIN
+Tất cả nhãn hiệu, kiểu dáng, công thức sản phẩm Genki Fami thuộc quyền sở hữu độc quyền của Bên A. Bên B có nghĩa vụ giữ bí mật tuyệt đối trong suốt thời gian hợp đồng và cả sau khi chấm dứt hợp đồng.
+
+ĐIỀU 14 & 15: THỜI HẠN VÀ ĐIỀU KHOẢN THI HÀNH
+14.1. Hợp đồng có hiệu lực 12 tháng (01 năm) kể từ ngày ký.
+14.2. Khi hết hạn, hợp đồng tự động gia hạn thêm ba (03) tháng nếu hai bên chưa kịp ký hợp đồng mới.
+14.3. Hợp đồng được lập thành 04 bản có giá trị pháp lý như nhau, mỗi bên giữ 02 bản.
+
+          ĐẠI DIỆN BÊN A                                         ĐẠI DIỆN BÊN B
+   (Ký, ghi rõ họ tên và đóng dấu)                           (Ký, ghi rõ họ tên và đóng dấu)
+
+
+
+         KT. TỔNG GIÁM ĐỐC
+       GIÁM ĐỐC KINH DOANH
+            LÊ TRÍ NAM                                           {{party_b_representative}}
+
+================================================================================
+PHỤ LỤC 01: CHÍNH SÁCH CHIẾT KHẤU & ĐƠN HÀNG NGUYÊN TẮC MẪU
+(Kèm theo Hợp đồng nguyên tắc số: {{contract_code}})
+
+1. CHÍNH SÁCH CHIẾT KHẤU THƯƠNG MẠI:
+- Loại chiết khấu: Chiết khấu cơ bản trực tiếp trên hóa đơn (tính theo giá niêm yết).
+- Tỷ lệ chiết khấu: {{discount_rate}}%.
+- Hạn mức công nợ gối đầu đơn đầu tiên: {{first_order_debt}} VNĐ.
+
+2. DANH MỤC SẢN PHẨM VÀ ĐƠN HÀNG MẪU:
+| STT | TÊN SẢN PHẨM | QUY CÁCH | SỐ LƯỢNG | ĐƠN GIÁ NIÊM YẾT | THÀNH TIỀN | CHIẾT KHẤU ({{discount_rate}}%) |
+| 1 | Sữa dinh dưỡng SUKOYAMA M1 (0 - 12 Tháng) | Lon 800g | 8 LON | 595.000 đ | 4.760.000 đ | 856.800 đ |
+| 2 | Sữa dinh dưỡng TSUYOIKO (9 – 36 Tháng) | Lon 800g | 8 LON | 495.000 đ | 3.960.000 đ | 712.800 đ |
+| 3 | Sữa dinh dưỡng ONAKA NI YASASHII | Lon 800g | 12 LON | 495.000 đ | 5.940.000 đ | 1.069.200 đ |
+--------------------------------------------------------------------------------
+- TỔNG CỘNG TIỀN HÀNG NIÊM YẾT: 14.660.000 VNĐ
+- TIỀN CHIẾT KHẤU THƯƠNG MẠI ({{discount_rate}}%): 2.638.800 VNĐ
+- TỔNG TIỀN THANH TOÁN (GỐI ĐẦU ĐƠN ĐẦU TIÊN): {{first_order_debt}} VNĐ
+(Bằng chữ: {{first_order_debt_words}})
+
+          ĐẠI DIỆN BÊN A                                         ĐẠI DIỆN BÊN B
+   (Ký, ghi rõ họ tên và đóng dấu)                           (Ký, ghi rõ họ tên và đóng dấu)`
+  },
+  {
     id: 'TPL-CTV',
     name: 'Hợp Đồng Hợp Tác Bán Hàng (CTV)',
     description: 'Áp dụng cho cộng tác viên phát triển mạng lưới nhà thuốc',
@@ -569,6 +704,46 @@ Người lao động: {{full_name}} (CCCD: {{identity_number}})
 ];
 
 export const INITIAL_CONTRACTS = [
+  {
+    id: 'CTR-2026-HDNT-001',
+    contractCode: 'HĐMB-2026-01/GENKI-QUANGMINHDL',
+    personId: 'P-001',
+    contractType: 'HDNT',
+    templateId: 'TPL-HDNT',
+    startDate: '2026-01-15',
+    endDate: '2027-01-14',
+    salary: 0,
+    allowance: 0,
+    discountRate: 18,
+    firstOrderDebt: 12021200,
+    creditLimit: 15000000,
+    partyBType: 'ENTERPRISE',
+    partyBCompany: 'CÔNG TY TNHH TM&DV QUANG MINH DL',
+    partyBAddress: '246 Nguyễn Tử Lực, Phường Lâm Viên - Đà Lạt, Lâm Đồng',
+    partyBPhone: '032.882.1567',
+    partyBTax: '5801510308',
+    partyBRepresentative: 'Bà Hồ Thị Quế',
+    partyBPosition: 'Giám Đốc',
+    partyBBankAccount: '0851000041236',
+    partyBBankName: 'Vietcombank Lâm Đồng',
+    partyARepresentative: 'Ông Lê Trí Nam',
+    partyAPosition: 'Giám Đốc Kinh Doanh (KT. Tổng Giám đốc)',
+    partyACompany: 'CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM',
+    partyAAddress: 'Số 107 ngõ 192 Lê Trọng Tấn, Tổ 1, P. Định Công, Q. Hoàng Mai, Hà Nội',
+    partyAPhone: '070-333-6633',
+    territoryDescription: 'Hệ thống đại lý & phân phối Lâm Đồng - Đà Lạt',
+    additionalTerms: 'Chiết khấu 18% theo giá niêm yết; nợ đơn đầu 12.021.200đ trả cuối kỳ hợp đồng; đặt hàng qua AMIS CRM.',
+    orderProducts: [
+      { id: 1, name: 'Sữa dinh dưỡng SUKOYAMA M1 (0 - 12 Tháng)', spec: 'Lon 800g', quantity: 8, unit: 'LON', price: 595000, amount: 4760000, discountAmount: 856800 },
+      { id: 2, name: 'Sữa dinh dưỡng TSUYOIKO (9 – 36 Tháng)', spec: 'Lon 800g', quantity: 8, unit: 'LON', price: 495000, amount: 3960000, discountAmount: 712800 },
+      { id: 3, name: 'Sữa dinh dưỡng ONAKA NI YASASHII', spec: 'Lon 800g', quantity: 12, unit: 'LON', price: 495000, amount: 5940000, discountAmount: 1069200 }
+    ],
+    status: 'ACTIVE',
+    createdBy: 'P-003',
+    approvedBy: 'P-005',
+    approvedAt: '2026-01-14T10:00:00.000Z',
+    driveFolderUrl: 'https://drive.google.com/drive/folders/genki-contract-hdnt-001'
+  },
   {
     id: 'CTR-2025-HDLD-001',
     contractCode: '100325/HĐLĐ-GENKI',

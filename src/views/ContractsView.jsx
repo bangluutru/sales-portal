@@ -65,6 +65,17 @@ export default function ContractsView() {
   const [department, setDepartment] = useState('Phòng Quản lý Kho vận & Hỗ trợ Kinh doanh');
   const [reportTo, setReportTo] = useState('Trưởng phòng Vận hành / Ban Giám đốc');
 
+  // HDNT specific parameters
+  const [discountRate, setDiscountRate] = useState(18);
+  const [firstOrderDebt, setFirstOrderDebt] = useState('12021200');
+  const [creditLimit, setCreditLimit] = useState('12021200');
+  const [partyBType, setPartyBType] = useState('ENTERPRISE');
+  const [partyBCompany, setPartyBCompany] = useState('');
+  const [partyBTax, setPartyBTax] = useState('');
+  const [partyBRepresentative, setPartyBRepresentative] = useState('');
+  const [partyBPosition, setPartyBPosition] = useState('Giám đốc');
+  const [partyBAddress, setPartyBAddress] = useState('');
+
   const role = currentPerson.role;
 
   // Lọc hợp đồng theo phân quyền:
@@ -88,7 +99,16 @@ export default function ContractsView() {
   // Mở modal tạo từ template cụ thể
   const handleOpenCreateWithTemplate = (tplId) => {
     setTemplateId(tplId);
-    if (tplId.includes('HDLD')) {
+    if (tplId.includes('HDNT')) {
+      setContractType('HDNT');
+      setDiscountRate(18);
+      setFirstOrderDebt('12021200');
+      setCreditLimit('12021200');
+      setPartyBType('ENTERPRISE');
+      setPartyBPosition('Giám đốc');
+      setTerritoryDescription('Hệ thống đại lý & phân phối');
+      setAdditionalTerms('Bảo vệ giá bán lẻ niêm yết, không bán phá giá trên sàn TMĐT; gối đầu công nợ đơn hàng đầu tiên.');
+    } else if (tplId.includes('HDLD')) {
       setContractType('HDLD');
       setSalary('7491370');
       setPerformanceBonus('1278630');
@@ -146,6 +166,21 @@ export default function ContractsView() {
       quarterBonusRate: Number(quarterBonusRate) || 0.5,
       yearBonusRate: Number(yearBonusRate) || 0.2,
       bonusTiers: DEFAULT_BONUS_TIERS,
+      // HĐNT specific
+      discountRate: Number(discountRate) || 18,
+      firstOrderDebt: Number(firstOrderDebt) || 12021200,
+      creditLimit: Number(creditLimit) || Number(firstOrderDebt) || 12021200,
+      partyBType,
+      partyBCompany: partyBCompany || (partyBType === 'ENTERPRISE' ? selectedPersonForForm?.fullName : ''),
+      partyBTax: partyBTax || selectedPersonForForm?.taxNumber || '',
+      partyBRepresentative: partyBRepresentative || selectedPersonForForm?.fullName || '',
+      partyBPosition: partyBPosition || 'Giám đốc',
+      partyBAddress: partyBAddress || selectedPersonForForm?.address || '',
+      orderProducts: [
+        { sku: 'GF-SKM-01', name: 'Thực phẩm bảo vệ sức khỏe Sukoyama M1 (Hộp 120 viên)', unit: 'Hộp', price: 990000, quantity: 4 },
+        { sku: 'GF-TSY-01', name: 'Thực phẩm bảo vệ sức khỏe Tsuyoiko (Hộp 90 viên)', unit: 'Hộp', price: 1250000, quantity: 4 },
+        { sku: 'GF-ONY-01', name: 'Thực phẩm bảo vệ sức khỏe Onaka Ni Yasashii (Hộp 60 viên)', unit: 'Hộp', price: 790000, quantity: 4 }
+      ],
       commissionDescription,
       targetDescription,
       territoryDescription,
@@ -257,6 +292,7 @@ export default function ContractsView() {
                     const person = people.find(p => p.id === c.personId);
                     const isHtkd = c.templateId === 'TPL-HTKD' || c.contractType === 'HTKD';
                     const isHdld = c.templateId === 'TPL-HDLD' || c.contractType === 'HDLD';
+                    const isHdnt = c.templateId === 'TPL-HDNT' || c.contractType === 'HDNT';
 
                     return (
                       <tr key={c.id}>
@@ -280,27 +316,39 @@ export default function ContractsView() {
                         <td>
                           <div>
                             <span className="badge" style={{
-                              backgroundColor: isHdld ? 'rgba(16, 185, 129, 0.15)' : isHtkd ? 'rgba(0, 105, 100, 0.15)' : 'rgba(2, 132, 199, 0.15)',
-                              color: isHdld ? '#059669' : isHtkd ? 'var(--gf-primary)' : '#0284c7',
+                              backgroundColor: isHdnt ? 'rgba(99, 102, 241, 0.15)' : isHdld ? 'rgba(16, 185, 129, 0.15)' : isHtkd ? 'rgba(0, 105, 100, 0.15)' : 'rgba(2, 132, 199, 0.15)',
+                              color: isHdnt ? '#4f46e5' : isHdld ? '#059669' : isHtkd ? 'var(--gf-primary)' : '#0284c7',
                               fontWeight: 700
                             }}>
                               {c.contractType}
                             </span>
                           </div>
                           <small style={{ color: 'var(--text-secondary)' }}>
-                            {isHdld ? (c.jobTitle || 'Kho vận & Bán hàng') : c.territoryDescription}
+                            {isHdnt ? (c.partyBCompany || 'Hệ thống đại lý & phân phối') : isHdld ? (c.jobTitle || 'Kho vận & Bán hàng') : c.territoryDescription}
                           </small>
                         </td>
                         <td>
                           <div>{formatDate(c.startDate)} → {formatDate(c.endDate)}</div>
-                          {isHdld ? (
+                          {isHdnt ? (
+                            <small style={{ color: 'var(--text-muted)' }}>HĐ đại lý 01 năm</small>
+                          ) : isHdld ? (
                             <small style={{ color: 'var(--text-muted)' }}>Thời hạn: {c.contractDuration || '02 năm'}</small>
                           ) : c.probationMonths ? (
                             <small style={{ color: 'var(--text-muted)' }}>Thử việc: {c.probationMonths} tháng</small>
                           ) : null}
                         </td>
                         <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                          {isHdld ? (
+                          {isHdnt ? (
+                            <>
+                              <div>CK: {c.discountRate || 18}%</div>
+                              <small style={{ display: 'block', color: 'var(--text-muted)' }}>
+                                Gối đầu: {formatVND(c.firstOrderDebt || 12021200)}
+                              </small>
+                              <small style={{ display: 'block', color: '#4f46e5', fontSize: '11px' }}>
+                                Tất toán khi thanh lý
+                              </small>
+                            </>
+                          ) : isHdld ? (
                             <>
                               <div>Lương CD: {formatVND(c.salary)}</div>
                               <small style={{ display: 'block', color: 'var(--text-muted)' }}>
@@ -418,7 +466,17 @@ export default function ContractsView() {
                         Các trường dữ liệu tự động thay thế:
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                        {tpl.id === 'TPL-HDLD' ? (
+                        {tpl.id === 'TPL-HDNT' ? (
+                          <>
+                            <code style={{ fontSize: '11px' }}>{`{{party_b_name}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{party_b_tax_or_cccd}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{party_b_representative}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{discount_rate}} (18%)`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{first_order_debt}} (Gối đầu)`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{credit_limit}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`16 Điều khoản & Phụ lục 01`}</code>
+                          </>
+                        ) : tpl.id === 'TPL-HDLD' ? (
                           <>
                             <code style={{ fontSize: '11px' }}>{`{{full_name}}`}</code>
                             <code style={{ fontSize: '11px' }}>{`{{identity_number}}`}</code>
@@ -502,7 +560,44 @@ export default function ContractsView() {
                     </div>
                   )}
                 </div>
-                {selectedContract.contractType === 'HDLD' || selectedContract.templateId === 'TPL-HDLD' ? (
+                {selectedContract.contractType === 'HDNT' || selectedContract.templateId === 'TPL-HDNT' ? (
+                  <>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Chiết khấu thương mại cơ bản:</span>
+                      <div style={{ fontWeight: 700, color: 'var(--gf-primary)', fontSize: '16px' }}>
+                        {selectedContract.discountRate || 18}% trực tiếp trên hóa đơn
+                      </div>
+                      <small style={{ color: 'var(--text-muted)' }}>Tính theo Bảng giá bán lẻ niêm yết Genki Fami</small>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Hạn mức công nợ gối đầu:</span>
+                      <div style={{ fontWeight: 700, color: '#b45309', fontSize: '16px' }}>
+                        {formatVND(selectedContract.firstOrderDebt || 12021200)}
+                      </div>
+                      <small style={{ color: '#b45309' }}>Tất toán dứt điểm khi thanh lý HĐ</small>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Hình thức bên nhận phân phối:</span>
+                      <div style={{ fontWeight: 600 }}>
+                        {selectedContract.partyBType === 'ENTERPRISE' ? 'Doanh Nghiệp / Công ty' : 'Cá Nhân / Đại Lý'}
+                      </div>
+                      <small style={{ color: 'var(--text-secondary)' }}>
+                        {selectedContract.partyBCompany || selectedContract.partyBRepresentative || targetPerson?.fullName}
+                      </small>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Phương thức đặt hàng & CRM:</span>
+                      <div style={{ fontWeight: 600 }}>Cổng MISA AMIS CRM</div>
+                      <small style={{ color: 'var(--text-secondary)' }}>Đơn tiếp theo trả trước / COD</small>
+                    </div>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Chính sách bảo vệ thị trường:</span>
+                      <div style={{ fontSize: '13px', marginTop: '2px', color: '#991b1b', fontWeight: 600 }}>
+                        🛡️ Bán đúng giá niêm yết, chống bán phá giá trên TMĐT • Chế tài rò rỉ bí mật: 100.000.000 đ
+                      </div>
+                    </div>
+                  </>
+                ) : selectedContract.contractType === 'HDLD' || selectedContract.templateId === 'TPL-HDLD' ? (
                   <>
                     <div>
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Lương chức danh (BHXH):</span>
@@ -802,7 +897,16 @@ export default function ContractsView() {
                       onChange={(e) => {
                         const val = e.target.value;
                         setTemplateId(val);
-                        if (val.includes('HDLD')) {
+                        if (val.includes('HDNT')) {
+                          setContractType('HDNT');
+                          setDiscountRate(18);
+                          setFirstOrderDebt('12021200');
+                          setCreditLimit('12021200');
+                          setPartyBType('ENTERPRISE');
+                          setPartyBPosition('Giám đốc');
+                          setTerritoryDescription('Hệ thống đại lý & phân phối');
+                          setAdditionalTerms('Bảo vệ giá bán lẻ niêm yết, không bán phá giá trên sàn TMĐT; gối đầu công nợ đơn hàng đầu tiên.');
+                        } else if (val.includes('HDLD')) {
                           setContractType('HDLD');
                           setSalary('7491370');
                           setPerformanceBonus('1278630');
@@ -832,7 +936,7 @@ export default function ContractsView() {
                     >
                       {contractTemplates.map(t => (
                         <option key={t.id} value={t.id}>
-                          {t.name} {t.id === 'TPL-HTKD' || t.id === 'TPL-HDLD' ? '⭐' : ''}
+                          {t.name} {t.id === 'TPL-HTKD' || t.id === 'TPL-HDLD' || t.id === 'TPL-HDNT' ? '⭐' : ''}
                         </option>
                       ))}
                     </select>
@@ -871,8 +975,160 @@ export default function ContractsView() {
                   </div>
                 )}
 
-                {/* Phân nhánh Form: HĐLĐ (3 Tầng Thu Nhập & JD) vs HTKD/CTV/STAFF */}
-                {templateId === 'TPL-HDLD' ? (
+                {/* Phân nhánh Form: HĐNT vs HĐLĐ vs HTKD/CTV/STAFF */}
+                {templateId === 'TPL-HDNT' ? (
+                  <>
+                    <div style={{
+                      background: 'rgba(99, 102, 241, 0.05)',
+                      border: '1px solid rgba(99, 102, 241, 0.25)',
+                      padding: '12px 14px',
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: '16px'
+                    }}>
+                      <div style={{ fontWeight: 700, color: '#4f46e5', marginBottom: '4px', fontSize: '13px' }}>
+                        📦 Hợp Đồng Nguyên Tắc Mua Bán & Phân Phối Sản Phẩm Genki Fami Nhật Bản (Luật Thương mại 2005)
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        Chiết khấu thương mại cơ bản 18% trừ trực tiếp hóa đơn + Hạn mức gối đầu thanh toán đơn hàng đầu tiên (tất toán khi thanh lý HĐ) + Đặt hàng qua Cổng MISA AMIS CRM + Cam kết chống bán phá giá và bảo mật đối tác.
+                      </div>
+                    </div>
+
+                    {/* Party B Type Toggle: ENTERPRISE vs INDIVIDUAL */}
+                    <div className="form-group" style={{ marginBottom: '16px' }}>
+                      <label className="form-label">Loại Hình Đối Tác / Điểm Bán (Bên B) *</label>
+                      <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="partyBType"
+                            value="ENTERPRISE"
+                            checked={partyBType === 'ENTERPRISE'}
+                            onChange={(e) => setPartyBType(e.target.value)}
+                          />
+                          <span style={{ fontWeight: 600 }}>Doanh Nghiệp / Công Ty (Pháp nhân)</span>
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="partyBType"
+                            value="INDIVIDUAL"
+                            checked={partyBType === 'INDIVIDUAL'}
+                            onChange={(e) => setPartyBType(e.target.value)}
+                          />
+                          <span style={{ fontWeight: 600 }}>Cá Nhân / Đại Lý Bán Lẻ (Thể nhân)</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {partyBType === 'ENTERPRISE' ? (
+                      <>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label className="form-label">Tên Doanh Nghiệp / Công Ty Đối Tác *</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="VD: CÔNG TY TNHH TM&DV QUANG MINH DL"
+                              value={partyBCompany}
+                              onChange={(e) => setPartyBCompany(e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Mã Số Thuế Doanh Nghiệp *</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="VD: 5801452296"
+                              value={partyBTax}
+                              onChange={(e) => setPartyBTax(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label className="form-label">Người Đại Diện Theo Pháp Luật *</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="VD: Bà Hồ Thị Quế"
+                              value={partyBRepresentative}
+                              onChange={(e) => setPartyBRepresentative(e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Chức Vụ Người Đại Diện *</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="VD: Giám đốc"
+                              value={partyBPosition}
+                              onChange={(e) => setPartyBPosition(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label className="form-label">Họ Tên Đại Lý / Chủ Điểm Bán *</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={partyBRepresentative || selectedPersonForForm?.fullName || ''}
+                            onChange={(e) => setPartyBRepresentative(e.target.value)}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Chức Danh / Vị Trí</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={partyBPosition}
+                            onChange={(e) => setPartyBPosition(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">Tỷ Lệ Chiết Khấu Cơ Bản Trực Tiếp (%) *</label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          className="form-input"
+                          required
+                          value={discountRate}
+                          onChange={(e) => setDiscountRate(e.target.value)}
+                        />
+                        <small style={{ color: '#4f46e5', fontSize: '11px' }}>
+                          ✓ Trừ trực tiếp trên hóa đơn theo Bảng giá bán lẻ niêm yết Genki Fami
+                        </small>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Hạn Mức Gối Đầu Đơn Đầu Tiên (VNĐ) *</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          required
+                          placeholder="12021200"
+                          value={firstOrderDebt}
+                          onChange={(e) => {
+                            setFirstOrderDebt(e.target.value);
+                            setCreditLimit(e.target.value);
+                          }}
+                        />
+                        {firstOrderDebt > 0 && (
+                          <small style={{ color: 'var(--text-muted)' }}>
+                            Bằng chữ: {numberToVietnameseWords(Number(firstOrderDebt))} (Tất toán khi thanh lý HĐ)
+                          </small>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : templateId === 'TPL-HDLD' ? (
                   <>
                     <div style={{
                       background: 'rgba(16, 185, 129, 0.05)',

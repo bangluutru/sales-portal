@@ -22,6 +22,11 @@ export async function exportContractToDocx(contract, person, template) {
     return generateHdldDocx(contract, person, template);
   }
 
+  const isHdnt = contract?.contractType === 'HDNT' || template?.id === 'TPL-HDNT' || contract?.templateId === 'TPL-HDNT';
+  if (isHdnt) {
+    return generateHdntDocx(contract, person, template);
+  }
+
   const contractCode = contract.contractCode || 'HĐHT-GENKI/01092026';
   const personName = person?.fullName?.toUpperCase() || contract.fullName?.toUpperCase() || 'ĐỐI TÁC';
   const partyARep = contract.partyARepresentative || 'LÊ TRÍ NAM';
@@ -1904,3 +1909,417 @@ export async function generateHdldDocx(contract, person, template) {
 
   return { success: true, fileName };
 }
+
+/**
+ * Xuất Hợp Đồng Nguyên Tắc Mua Bán Hàng Hóa (HĐNT) sang tệp Word (.DOCX) chuẩn văn bản hành chính Việt Nam
+ * Phân trang gồm 2 phần:
+ * Section 1: Toàn văn 16 điều khoản Hợp đồng nguyên tắc mua bán hàng hóa (Quốc hiệu, Tiêu ngữ, Căn cứ pháp lý, Bên A & Bên B, Điều 0 - Điều 16, Khối chữ ký)
+ * Section 2: Phụ lục 01: Chính sách chiết khấu thương mại (18%) & Bảng sản phẩm đơn hàng mẫu, chính sách công nợ gối đầu & Ký duyệt
+ */
+export async function generateHdntDocx(contract, person, template) {
+  const contractCode = contract.contractCode || 'HĐMB-2026-01/GENKI-QUANGMINHDL';
+
+  // Bên B có thể là Pháp nhân hoặc Cá nhân
+  const isEnterprise = contract.partyBType === 'ENTERPRISE' || Boolean(contract.partyBCompany);
+  const partyBName = (contract.partyBCompany || person?.company || person?.fullName || contract.fullName || 'ĐẠI LÝ PHÂN PHỐI').toUpperCase();
+  const partyBAddress = contract.partyBAddress || person?.address || '—';
+  const partyBPhone = contract.partyBPhone || person?.phone || '—';
+  const partyBTax = contract.partyBTax || person?.taxNumber || person?.identityNumber || '—';
+  const partyBRep = contract.partyBRepresentative || person?.fullName || '—';
+  const partyBPos = contract.partyBPosition || (isEnterprise ? 'Giám Đốc' : 'Đại diện / CTV');
+  const partyBBankAccount = contract.partyBBankAccount || person?.bankAccount || '—';
+  const partyBBankName = contract.partyBBankName || person?.bankName || 'Vietcombank';
+
+  // Bên A (Genki Fami)
+  const partyACompany = contract.partyACompany || 'CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM';
+  const partyAAddress = contract.partyAAddress || 'Số 107 ngõ 192 Lê Trọng Tấn, Tổ 1, P. Định Công, Q. Hoàng Mai, TP. Hà Nội';
+  const partyAPhone = contract.partyAPhone || '070-333-6633 / 024 6292 8668';
+  const partyATax = '0109006313';
+  const partyABankAccount = '0851000041236 tại Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank) - CN Hà Thành';
+  const partyARep = contract.partyARepresentative || 'LÊ TRÍ NAM';
+  const partyAPos = contract.partyAPosition || 'Giám Đốc Kinh Doanh';
+
+  // Điều kiện thương mại
+  const discountRate = contract.discountRate !== undefined ? contract.discountRate : 18;
+  const firstOrderDebt = Number(contract.firstOrderDebt || 12021200);
+  const firstOrderDebtWords = numberToVietnameseWords(firstOrderDebt);
+
+  const startDate = contract.startDate ? new Date(contract.startDate) : new Date();
+  const day = String(startDate.getDate()).padStart(2, '0');
+  const month = String(startDate.getMonth() + 1).padStart(2, '0');
+  const year = String(startDate.getFullYear());
+
+  // Bảng sản phẩm mẫu Phụ lục 01
+  const products = contract.orderProducts && contract.orderProducts.length > 0 ? contract.orderProducts : [
+    { id: 1, name: 'Sữa dinh dưỡng SUKOYAMA M1 (0 - 12 Tháng)', spec: 'Lon 800g', quantity: 8, unit: 'LON', price: 595000, amount: 4760000, discountAmount: 856800 },
+    { id: 2, name: 'Sữa dinh dưỡng TSUYOIKO (9 – 36 Tháng)', spec: 'Lon 800g', quantity: 8, unit: 'LON', price: 495000, amount: 3960000, discountAmount: 712800 },
+    { id: 3, name: 'Sữa dinh dưỡng ONAKA NI YASASHII', spec: 'Lon 800g', quantity: 12, unit: 'LON', price: 495000, amount: 5940000, discountAmount: 1069200 }
+  ];
+
+  const totalListPrice = products.reduce((acc, p) => acc + (p.amount || (p.quantity * p.price)), 0);
+  const totalDiscount = Math.round(totalListPrice * (discountRate / 100));
+  const finalPayAmount = firstOrderDebt || (totalListPrice - totalDiscount);
+
+  // Typography & styles
+  const FONT_FAMILY = 'Times New Roman';
+  const SIZE_BODY = 26; // 13pt
+  const SIZE_TITLE = 30; // 15pt
+  const SIZE_HEADER = 24; // 12pt
+
+  const bordersNone = {
+    top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    right: { style: BorderStyle.NONE, size: 0, color: 'auto' }
+  };
+
+  const bordersTable = {
+    top: { style: BorderStyle.SINGLE, size: 4, color: '888888' },
+    bottom: { style: BorderStyle.SINGLE, size: 4, color: '888888' },
+    left: { style: BorderStyle.SINGLE, size: 4, color: '888888' },
+    right: { style: BorderStyle.SINGLE, size: 4, color: '888888' },
+    insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: 'CCCCCC' },
+    insideVertical: { style: BorderStyle.SINGLE, size: 4, color: 'CCCCCC' }
+  };
+
+  // Helper hàm tạo đoạn văn thụt lề
+  const createP = (text, options = {}) => {
+    return new Paragraph({
+      alignment: options.alignment || AlignmentType.JUSTIFIED,
+      spacing: options.spacing || { before: 50, after: 50 },
+      indent: options.indent !== undefined ? options.indent : { firstLine: 720 },
+      children: [
+        new TextRun({
+          text,
+          font: FONT_FAMILY,
+          size: options.size || SIZE_BODY,
+          bold: Boolean(options.bold),
+          italics: Boolean(options.italics)
+        })
+      ]
+    });
+  };
+
+  const createH = (title) => {
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      spacing: { before: 140, after: 60 },
+      children: [
+        new TextRun({
+          text: title,
+          font: FONT_FAMILY,
+          size: SIZE_BODY,
+          bold: true
+        })
+      ]
+    });
+  };
+
+  // Xây dựng các hàng cho bảng sản phẩm Phụ lục 01
+  const productRows = [
+    new TableRow({
+      tableHeader: true,
+      children: [
+        new TableCell({ width: { size: 600, type: WidthType.DXA }, children: [createP('STT', { alignment: AlignmentType.CENTER, bold: true, indent: 0 })] }),
+        new TableCell({ width: { size: 3600, type: WidthType.DXA }, children: [createP('TÊN SẢN PHẨM', { alignment: AlignmentType.CENTER, bold: true, indent: 0 })] }),
+        new TableCell({ width: { size: 1100, type: WidthType.DXA }, children: [createP('QUY CÁCH', { alignment: AlignmentType.CENTER, bold: true, indent: 0 })] }),
+        new TableCell({ width: { size: 1000, type: WidthType.DXA }, children: [createP('SL', { alignment: AlignmentType.CENTER, bold: true, indent: 0 })] }),
+        new TableCell({ width: { size: 1400, type: WidthType.DXA }, children: [createP('ĐƠN GIÁ', { alignment: AlignmentType.RIGHT, bold: true, indent: 0 })] }),
+        new TableCell({ width: { size: 1600, type: WidthType.DXA }, children: [createP('THÀNH TIỀN', { alignment: AlignmentType.RIGHT, bold: true, indent: 0 })] }),
+        new TableCell({ width: { size: 1500, type: WidthType.DXA }, children: [createP(`CK ${discountRate}%`, { alignment: AlignmentType.RIGHT, bold: true, indent: 0 })] })
+      ]
+    }),
+    ...products.map((p, idx) => {
+      const lineAmount = p.amount || (p.quantity * p.price);
+      const lineDiscount = p.discountAmount || Math.round(lineAmount * (discountRate / 100));
+      return new TableRow({
+        children: [
+          new TableCell({ children: [createP(String(idx + 1), { alignment: AlignmentType.CENTER, indent: 0 })] }),
+          new TableCell({ children: [createP(p.name, { indent: 0, bold: true })] }),
+          new TableCell({ children: [createP(p.spec || 'Lon 800g', { alignment: AlignmentType.CENTER, indent: 0 })] }),
+          new TableCell({ children: [createP(`${p.quantity} ${p.unit || 'LON'}`, { alignment: AlignmentType.CENTER, indent: 0 })] }),
+          new TableCell({ children: [createP(formatVND(p.price), { alignment: AlignmentType.RIGHT, indent: 0 })] }),
+          new TableCell({ children: [createP(formatVND(lineAmount), { alignment: AlignmentType.RIGHT, indent: 0 })] }),
+          new TableCell({ children: [createP(formatVND(lineDiscount), { alignment: AlignmentType.RIGHT, indent: 0 })] })
+        ]
+      });
+    }),
+    // Hàng tổng cộng niêm yết
+    new TableRow({
+      children: [
+        new TableCell({ columnSpan: 5, children: [createP('TỔNG CỘNG TIỀN HÀNG (GIÁ NIÊM YẾT):', { bold: true, indent: 0, alignment: AlignmentType.RIGHT })] }),
+        new TableCell({ children: [createP(formatVND(totalListPrice), { bold: true, indent: 0, alignment: AlignmentType.RIGHT })] }),
+        new TableCell({ children: [createP(formatVND(totalDiscount), { bold: true, indent: 0, alignment: AlignmentType.RIGHT })] })
+      ]
+    }),
+    // Hàng thành tiền phải thanh toán
+    new TableRow({
+      children: [
+        new TableCell({ columnSpan: 5, children: [createP('TỔNG TIỀN PHẢI THANH TOÁN (GỐI ĐẦU ĐƠN ĐẦU TIÊN):', { bold: true, indent: 0, alignment: AlignmentType.RIGHT })] }),
+        new TableCell({ columnSpan: 2, children: [createP(`${formatVND(finalPayAmount)} VNĐ`, { bold: true, indent: 0, alignment: AlignmentType.RIGHT })] })
+      ]
+    })
+  ];
+
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: { top: 1134, bottom: 1134, left: 1701, right: 1134 }
+          }
+        },
+        children: [
+          // QUỐC HIỆU - TIÊU NGỮ
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 30 },
+            children: [
+              new TextRun({ text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', font: FONT_FAMILY, size: SIZE_HEADER, bold: true })
+            ]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 140 },
+            children: [
+              new TextRun({ text: 'Độc lập - Tự do - Hạnh phúc', font: FONT_FAMILY, size: SIZE_HEADER, bold: true })
+            ]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 180 },
+            children: [
+              new TextRun({ text: '----------o0o----------', font: FONT_FAMILY, size: SIZE_HEADER })
+            ]
+          }),
+
+          // TIÊU ĐỀ HỢP ĐỒNG
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 80, after: 60 },
+            children: [
+              new TextRun({ text: 'HỢP ĐỒNG NGUYÊN TẮC MUA BÁN HÀNG HÓA', font: FONT_FAMILY, size: SIZE_TITLE, bold: true })
+            ]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 80 },
+            children: [
+              new TextRun({ text: '(V/v: Mua Bán Thực Phẩm Chức Năng & Sữa Dinh Dưỡng Nhật Bản Genki Fami)', font: FONT_FAMILY, size: SIZE_BODY, italics: true })
+            ]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 160 },
+            children: [
+              new TextRun({ text: `Số: ${contractCode}`, font: FONT_FAMILY, size: SIZE_BODY, bold: true })
+            ]
+          }),
+
+          // CĂN CỨ PHÁP LÝ
+          createP('● Căn cứ Bộ Luật Dân Sự số 91/2015/QH13;', { indent: 360, italics: true }),
+          createP('● Căn cứ Luật Thương mại số 36/2005/QH11;', { indent: 360, italics: true }),
+          createP('● Căn cứ vào nhu cầu và khả năng thực tế của hai bên.', { indent: 360, italics: true }),
+          createP(`Hôm nay, ngày ${day} tháng ${month} năm ${year}, tại văn phòng Công ty CP Genki Fami Việt Nam, chúng tôi gồm có:`, { indent: 0, spacing: { before: 100, after: 80 } }),
+
+          // BÊN BÁN (BÊN A)
+          new Paragraph({
+            spacing: { before: 80, after: 40 },
+            children: [new TextRun({ text: 'BÊN BÁN (BÊN A): CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          createP(`- Địa chỉ: ${partyAAddress}`, { indent: 360 }),
+          createP(`- Điện thoại: ${partyAPhone}        Mã số thuế: ${partyATax}`, { indent: 360 }),
+          createP(`- Tài khoản ngân hàng: ${partyABankAccount}`, { indent: 360 }),
+          createP(`- Đại diện: Ông ${partyARep}        Chức vụ: ${partyAPos}`, { indent: 360, bold: true }),
+          createP('(Sau đây gọi tắt là “Bên A”)', { indent: 360, italics: true }),
+
+          // BÊN MUA (BÊN B)
+          new Paragraph({
+            spacing: { before: 100, after: 40 },
+            children: [new TextRun({ text: `BÊN MUA (BÊN B): ${partyBName}`, font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          createP(`- Địa chỉ: ${partyBAddress}`, { indent: 360 }),
+          createP(`- Điện thoại: ${partyBPhone}        Mã số thuế / Số CCCD: ${partyBTax}`, { indent: 360 }),
+          createP(`- Tài khoản ngân hàng: ${partyBBankAccount} tại ${partyBBankName}`, { indent: 360 }),
+          createP(`- Đại diện: ${partyBRep}        Chức vụ: ${partyBPos}`, { indent: 360, bold: true }),
+          createP('(Sau đây gọi tắt là “Bên B”)', { indent: 360, italics: true }),
+
+          createP('Bên A và Bên B (sau đây gọi chung là “Hai Bên”) cùng thống nhất ký kết Hợp đồng nguyên tắc với các điều khoản như sau:', { indent: 0, spacing: { before: 100, after: 80 } }),
+
+          // 16 ĐIỀU KHOẢN HỢP ĐỒNG
+          createH('ĐIỀU 0: KHÁI NIỆM VÀ ĐỊNH NGHĨA'),
+          createP('Trong Hợp đồng này: “Ngày làm việc” là các ngày không bao gồm thứ 7, chủ nhật và ngày nghỉ lễ theo quy định; “Giá bán lẻ” là giá bán trực tiếp cho người tiêu dùng cuối cùng theo bảng giá niêm yết của Bên A; “Giá bán tối thiểu” là mức giá thấp nhất Bên B được phép phân phối ra thị trường; “Sản phẩm tương tự / cạnh tranh” là sản phẩm có công dụng, thành phần giống hoặc tương tự sản phẩm của Bên A.'),
+
+          createH('ĐIỀU 1: CHỦNG LOẠI, CHẤT LƯỢNG VÀ QUY CÁCH SẢN PHẨM'),
+          createP('1.1. Chủng loại: Các dòng thực phẩm bảo vệ sức khỏe và sữa dinh dưỡng nhập khẩu chính ngạch từ Nhật Bản theo danh mục đính kèm trong Phụ lục hợp đồng.'),
+          createP('1.2. Tiêu chuẩn & Nguồn gốc: Xuất xứ Nhật Bản, có đầy đủ công bố lưu hành của Cục An toàn thực phẩm - Bộ Y tế, tem nhãn phụ tiếng Việt và hóa đơn giá trị gia tăng hợp lệ.'),
+          createP('1.3. Hạn sử dụng: Hàng hóa giao cho Bên B còn hạn sử dụng tối thiểu 18 tháng tính từ ngày sản xuất (đối với sản phẩm có date 3 năm) hoặc tối thiểu 12 tháng (đối với sản phẩm có date 2 năm).'),
+
+          createH('ĐIỀU 2: GIÁ SẢN PHẨM, MỨC CHIẾT KHẤU VÀ BẢO HỘ GIÁ'),
+          createP('2.1. Giá bán cụ thể của từng sản phẩm được quy định tại Phụ lục đính kèm hợp đồng này.'),
+          createP(`2.2. Chiết khấu thương mại: Bên A áp dụng mức chiết khấu thương mại cơ bản ${discountRate}% trực tiếp trên hóa đơn tính theo giá bán lẻ niêm yết của Bên A.`),
+          createP('2.3. Điều chỉnh giá: Trong trường hợp giá bán lẻ niêm yết có thay đổi, Bên A thông báo bằng văn bản cho Bên B trước ít nhất 30 ngày làm việc.'),
+          createP('2.4. Cam kết giá bán lẻ: Bên B cam kết bán lẻ theo bảng giá niêm yết của Bên A. Tuyệt đối không được bán dưới mức giá tối thiểu. Trường hợp Bên B bán phá giá, Bên A có quyền đơn phương chấm dứt hợp đồng ngay lập tức và yêu cầu bồi thường thiệt hại.'),
+
+          createH('ĐIỀU 3: PHƯƠNG THỨC, QUY TRÌNH ĐẶT HÀNG VÀ GIAO NHẬN'),
+          createP('3.1. Đặt hàng qua AMIS CRM: Bên B thực hiện đặt hàng chính thức thông qua Cổng Đại lý/Hệ thống AMIS CRM do Bên A cung cấp. Dữ liệu ghi nhận trên AMIS CRM là căn cứ đối chiếu chính thức. Trường hợp lỗi hệ thống, đơn đặt hàng được gửi qua email chỉ định.'),
+          createP('3.2. Trong thời hạn 02 ngày làm việc kể từ khi nhận đơn hàng, Bên A có trách nhiệm xác nhận hoặc điều chỉnh qua AMIS CRM hoặc email.'),
+          createP('3.3. Giao hàng: Bên A giao hàng trong vòng 03 ngày làm việc đến kho của Bên B kể từ khi chấp nhận đơn hàng. Bên A chịu phí vận chuyển đến 01 địa điểm giao hàng đầu tiên do Bên B chỉ định.'),
+          createP('3.4. Kiểm tra hàng hóa: Bên B kiểm tra số lượng, quy cách và tình trạng bao bì khi nhận hàng. Phản hồi sai lệch trong vòng 24 giờ kể từ khi nhận hàng.'),
+
+          createH('ĐIỀU 4: PHƯƠNG THỨC THANH TOÁN VÀ CÔNG NỢ ĐƠN HÀNG ĐẦU TIÊN'),
+          createP('4.1. Đồng tiền thanh toán: Việt Nam đồng (VNĐ).'),
+          createP(`4.2. Chính sách công nợ đơn hàng đầu tiên: Bên A cấp hạn mức gối đầu cho Bên B nợ số tiền hàng của đơn hàng đầu tiên là: ${formatVND(finalPayAmount)} VNĐ (Bằng chữ: ${numberToVietnameseWords(finalPayAmount)}). Bên B có trách nhiệm thanh toán số tiền này cho Bên A ngay khi kết thúc hoặc thanh lý hợp đồng.`),
+          createP('4.3. Các đơn hàng tiếp theo: Bên B thực hiện thanh toán ngay khi nhận hàng (Hình thức giao hàng nhận tiền ngay - COD) hoặc chuyển khoản trước khi xuất kho.'),
+          createP('4.4. Phạt chậm trả: Trường hợp quá hạn thanh toán, Bên B chịu lãi chậm trả 0.1%/ngày trên số tiền chậm trả.'),
+
+          createH('ĐIỀU 5: ĐỔI TRẢ HÀNG'),
+          createP('Bên A chấp nhận đổi hàng trong vòng 07 ngày làm việc kể từ khi nhận thông báo đối với các sản phẩm bao bì móp méo, vỡ hỏng do vận chuyển hoặc lỗi sản xuất, với điều kiện có biên bản giao nhận và hình ảnh/video mở kiện hàng còn nguyên tem niêm phong.'),
+
+          createH('ĐIỀU 6: THÔNG BÁO VÀ KÊNH THÔNG TIN CHÍNH THỨC'),
+          createP('Hai bên thống nhất sử dụng Cổng Đại lý AMIS CRM và Thư điện tử (Email) chính thức để trao đổi đơn hàng, bảng đối chiếu công nợ, báo giá và xác nhận thanh toán. Mọi văn bản gửi qua email đã đăng ký có giá trị pháp lý ràng buộc.'),
+
+          createH('ĐIỀU 7 & 8: QUYỀN VÀ TRÁCH NHIỆM CỦA CÁC BÊN'),
+          createP('Bên A bảo đảm cung cấp hàng hóa đúng chất lượng, xuất hóa đơn GTGT hợp lệ, hỗ trợ tài liệu đào tạo sản phẩm và tư liệu truyền thông. Bên B bảo quản hàng hóa đúng chuẩn, trưng bày tại điểm bán, bán đúng giá niêm yết, không tẩy xóa nhãn phụ/mã vạch và thanh toán công nợ đúng hạn.'),
+
+          createH('ĐIỀU 9: SỰ KIỆN BẤT KHẢ KHÁNG'),
+          createP('Thực hiện theo Luật Thương mại và Bộ luật Dân sự Việt Nam (thiên tai, dịch bệnh, chiến tranh, chính sách nhà nước thay đổi). Bên bị ảnh hưởng thông báo kịp thời trong vòng 03 ngày làm việc.'),
+
+          createH('ĐIỀU 10: ĐƠN PHƯƠNG CHẤM DỨT HỢP ĐỒNG'),
+          createP('Mỗi bên có quyền chấm dứt hợp đồng trước hạn bằng văn bản báo trước ít nhất 60 ngày. Bên B có nghĩa vụ thanh toán toàn bộ công nợ tồn đọng trước khi ký biên bản thanh lý hợp đồng.'),
+
+          createH('ĐIỀU 11: PHẠT VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI'),
+          createP('11.1. Phạt vi phạm hợp đồng mức 8% giá trị phần nghĩa vụ bị vi phạm theo Điều 301 Luật Thương mại 2005.'),
+          createP('11.2. Vi phạm bảo mật & Giá: Trường hợp Bên B tiết lộ bí mật kinh doanh hoặc bán phá giá, Bên B chịu mức phạt 100.000.000 VNĐ (Một trăm triệu đồng) đối với mỗi hành vi vi phạm và bồi thường toàn bộ thiệt hại thực tế phát sinh.'),
+
+          createH('ĐIỀU 12: XỬ LÝ SỰ CỐ VÀ GIẢI QUYẾT TRANH CHẤP'),
+          createP('Mọi tranh chấp phát sinh sẽ được giải quyết bằng thương lượng. Trường hợp không thỏa thuận được, tranh chấp sẽ được đưa ra giải quyết tại Tòa án nhân dân có thẩm quyền tại TP. Hà Nội. Bên thua kiện chịu toàn bộ án phí.'),
+
+          createH('ĐIỀU 13: QUYỀN SỞ HỮU TRÍ TUỆ VÀ BẢO MẬT'),
+          createP('Mọi nhãn hiệu, kiểu dáng, công thức sản phẩm Genki Fami thuộc quyền sở hữu độc quyền của Bên A. Bên B có nghĩa vụ giữ bí mật tuyệt đối về chính sách giá, danh sách khách hàng trong thời gian hợp đồng và sau khi chấm dứt hợp đồng.'),
+
+          createH('ĐIỀU 14, 15 & 16: THỜI HẠN VÀ ĐIỀU KHOẢN THI HÀNH'),
+          createP('14.1. Hợp đồng có hiệu lực 12 tháng (01 năm) kể từ ngày ký. Khi hết hạn, hợp đồng tự động gia hạn thêm ba (03) tháng nếu hai bên chưa kịp lập hợp đồng mới.'),
+          createP('14.2. Hợp đồng được lập thành 04 bản có giá trị pháp lý như nhau, mỗi bên giữ 02 bản.'),
+
+          // KHỐI CHỮ KÝ TRANG 1
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: bordersNone,
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI DIỆN BÊN A', font: FONT_FAMILY, size: SIZE_BODY, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '(Ký, ghi rõ họ tên và đóng dấu)', font: FONT_FAMILY, size: SIZE_HEADER, italics: true })] }),
+                      new Paragraph({ spacing: { after: 700 }, children: [new TextRun({ text: '', font: FONT_FAMILY })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `KT. TỔNG GIÁM ĐỐC\n${partyAPos.toUpperCase()}`, font: FONT_FAMILY, size: SIZE_HEADER, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyARep, font: FONT_FAMILY, size: SIZE_BODY, bold: true })] })
+                    ]
+                  }),
+                  new TableCell({
+                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI DIỆN BÊN B', font: FONT_FAMILY, size: SIZE_BODY, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '(Ký, ghi rõ họ tên và đóng dấu)', font: FONT_FAMILY, size: SIZE_HEADER, italics: true })] }),
+                      new Paragraph({ spacing: { after: 700 }, children: [new TextRun({ text: '', font: FONT_FAMILY })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyBPos.toUpperCase(), font: FONT_FAMILY, size: SIZE_HEADER, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyBRep, font: FONT_FAMILY, size: SIZE_BODY, bold: true })] })
+                    ]
+                  })
+                ]
+              })
+            ]
+          }),
+
+          // NGẮT TRANG SANG PHỤ LỤC 01
+          new Paragraph({ children: [new PageBreak()] }),
+
+          // TRANG 2: PHỤ LỤC 01
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 80, after: 60 },
+            children: [
+              new TextRun({ text: 'PHỤ LỤC 01: CHÍNH SÁCH CHIẾT KHẤU & ĐƠN HÀNG NGUYÊN TẮC MẪU', font: FONT_FAMILY, size: SIZE_TITLE, bold: true })
+            ]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 140 },
+            children: [
+              new TextRun({ text: `(Kèm theo Hợp đồng nguyên tắc số: ${contractCode})`, font: FONT_FAMILY, size: SIZE_BODY, italics: true })
+            ]
+          }),
+
+          createH('1. CHÍNH SÁCH CHIẾT KHẤU THƯƠNG MẠI:'),
+          createP(`- Loại chiết khấu: Chiết khấu thương mại cơ bản trực tiếp trên hóa đơn theo giá bán lẻ niêm yết của Genki Fami.`),
+          createP(`- Tỷ lệ chiết khấu: ${discountRate}%.`),
+          createP(`- Hạn mức nợ gối đầu đơn hàng đầu tiên: ${formatVND(finalPayAmount)} VNĐ (Thanh toán khi thanh lý/kết thúc hợp đồng).`),
+          createP('- Kênh tiếp nhận đơn hàng: Cổng Đại lý hệ thống MISA AMIS CRM của Bên A.'),
+
+          createH('2. DANH MỤC SẢN PHẨM VÀ ĐƠN HÀNG MẪU:'),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: bordersTable,
+            rows: productRows
+          }),
+
+          createP(`Bằng chữ: ${numberToVietnameseWords(finalPayAmount)}.`, { italics: true, spacing: { before: 80, after: 120 } }),
+          createP('Phụ lục này là bộ phận không thể tách rời của Hợp đồng nguyên tắc số ' + contractCode + ', được lập thành 04 bản có giá trị pháp lý như nhau.', { indent: 0, italics: true }),
+
+          // KHỐI CHỮ KÝ PHỤ LỤC 01
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: bordersNone,
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI DIỆN BÊN A', font: FONT_FAMILY, size: SIZE_BODY, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '(Ký, ghi rõ họ tên và đóng dấu)', font: FONT_FAMILY, size: SIZE_HEADER, italics: true })] }),
+                      new Paragraph({ spacing: { after: 700 }, children: [new TextRun({ text: '', font: FONT_FAMILY })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyARep, font: FONT_FAMILY, size: SIZE_BODY, bold: true })] })
+                    ]
+                  }),
+                  new TableCell({
+                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI DIỆN BÊN B', font: FONT_FAMILY, size: SIZE_BODY, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '(Ký, ghi rõ họ tên và đóng dấu)', font: FONT_FAMILY, size: SIZE_HEADER, italics: true })] }),
+                      new Paragraph({ spacing: { after: 700 }, children: [new TextRun({ text: '', font: FONT_FAMILY })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyBRep, font: FONT_FAMILY, size: SIZE_BODY, bold: true })] })
+                    ]
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      }
+    ]
+  });
+
+  // Xuất file sang Blob và trigger tải xuống
+  const blob = await Packer.toBlob(doc);
+  const cleanCode = contractCode.replace(/Đ/g, 'D').replace(/đ/g, 'd').replace(/[/\\]/g, '_').replace(/[^a-zA-Z0-9.-]/g, '_');
+  const cleanName = partyBName.replace(/[^a-zA-Z0-9À-ỹ\s]/g, '').trim().replace(/\s+/g, '_');
+  const fileName = `${cleanCode}_${cleanName}.docx`;
+
+  if (typeof window !== 'undefined' && typeof document !== 'undefined' && document.createElement) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  return { success: true, fileName };
+}
+

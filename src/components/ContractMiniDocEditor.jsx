@@ -33,6 +33,24 @@ export default function ContractMiniDocEditor({
 
   const isHtkd = template?.id === 'TPL-HTKD' || contract.contractType === 'HTKD';
   const isHdld = template?.id === 'TPL-HDLD' || contract.contractType === 'HDLD' || contract.templateId === 'TPL-HDLD';
+  const isHdnt = template?.id === 'TPL-HDNT' || contract.contractType === 'HDNT' || contract.templateId === 'TPL-HDNT';
+
+  // HĐNT specific fields
+  const discountRate = contract.discountRate ?? 18;
+  const firstOrderDebt = Number(contract.firstOrderDebt || 12021200);
+  const creditLimit = Number(contract.creditLimit || contract.firstOrderDebt || 12021200);
+  const partyBType = contract.partyBType || (contract.partyBTax || person?.taxNumber ? 'ENTERPRISE' : 'INDIVIDUAL');
+  const partyBCompany = contract.partyBCompany || (partyBType === 'ENTERPRISE' ? (contract.partyBName || person?.fullName) : '');
+  const partyBTax = contract.partyBTax || person?.taxNumber || '';
+  const partyBRepresentative = contract.partyBRepresentative || (partyBType === 'ENTERPRISE' ? 'Bà Hồ Thị Quế' : (person?.fullName || '—'));
+  const partyBPosition = contract.partyBPosition || (partyBType === 'ENTERPRISE' ? 'Giám đốc' : 'Đại lý / Điểm bán');
+  const partyBAddress = contract.partyBAddress || address;
+  const defaultOrderProducts = [
+    { sku: 'GF-SKM-01', name: 'Thực phẩm bảo vệ sức khỏe Sukoyama M1 (Hộp 120 viên)', unit: 'Hộp', price: 990000, quantity: 4 },
+    { sku: 'GF-TSY-01', name: 'Thực phẩm bảo vệ sức khỏe Tsuyoiko (Hộp 90 viên)', unit: 'Hộp', price: 1250000, quantity: 4 },
+    { sku: 'GF-ONY-01', name: 'Thực phẩm bảo vệ sức khỏe Onaka Ni Yasashii (Hộp 60 viên)', unit: 'Hộp', price: 790000, quantity: 4 }
+  ];
+  const orderProducts = (contract.orderProducts && contract.orderProducts.length > 0) ? contract.orderProducts : defaultOrderProducts;
 
   // HĐLĐ specific fields
   const baseSalary = Number(contract.salary || 7491370);
@@ -248,6 +266,41 @@ export default function ContractMiniDocEditor({
       tableBody.appendChild(tr);
       setIsDirty(true);
       showFeedback('✓ Đã thêm nhiệm vụ mới vào Bảng JD');
+    }
+  };
+
+  // Add new row into Phụ lục 01 HĐNT product order table
+  const handleAddNewProductRow = () => {
+    if (!page2Ref.current) return;
+    const tableBody = page2Ref.current.querySelector('.cp-data-table tbody');
+    if (tableBody) {
+      const rows = tableBody.querySelectorAll('tr.product-row');
+      const nextIdx = rows.length + 1;
+      const tr = document.createElement('tr');
+      tr.className = 'product-row';
+      const samplePrice = 850000;
+      const sampleQty = 2;
+      const sampleTotalBefore = samplePrice * sampleQty;
+      const sampleDiscountAmt = Math.round(sampleTotalBefore * (discountRate / 100));
+      const sampleTotalAfter = sampleTotalBefore - sampleDiscountAmt;
+      tr.innerHTML = `
+        <td style="text-align: center;">${nextIdx}</td>
+        <td class="editable-cell" contenteditable="${isEditMode}">GF-NEW-0${nextIdx}</td>
+        <td class="editable-cell" contenteditable="${isEditMode}">Thực phẩm bảo vệ sức khỏe Genki Fami Mới (Hộp tiêu chuẩn)</td>
+        <td style="text-align: center;" class="editable-cell" contenteditable="${isEditMode}">Hộp</td>
+        <td style="text-align: right;" class="editable-cell" contenteditable="${isEditMode}">850.000 đ</td>
+        <td style="text-align: center;" class="editable-cell" contenteditable="${isEditMode}">2</td>
+        <td style="text-align: right;" class="editable-cell" contenteditable="${isEditMode}">${discountRate}%</td>
+        <td style="text-align: right; font-weight: 700;" class="editable-cell" contenteditable="${isEditMode}">${formatVND(sampleTotalAfter)}</td>
+      `;
+      const summaryRow = tableBody.querySelector('.summary-row');
+      if (summaryRow) {
+        tableBody.insertBefore(tr, summaryRow);
+      } else {
+        tableBody.appendChild(tr);
+      }
+      setIsDirty(true);
+      showFeedback('✓ Đã thêm 1 dòng sản phẩm mới vào đơn hàng Phụ Lục 01');
     }
   };
 
@@ -526,16 +579,16 @@ export default function ContractMiniDocEditor({
             <button
               className={`mini-doc-nav-pill ${activePageTab === 'page1' ? 'active' : ''}`}
               onClick={() => scrollToPage('page1')}
-              title={isHdld ? "Cuộn nhanh đến Trang 1: HĐ Lao Động" : "Cuộn nhanh đến Trang 1: Hợp Đồng Chính"}
+              title={isHdld ? "Cuộn nhanh đến Trang 1: HĐ Lao Động" : isHdnt ? "Cuộn nhanh đến Trang 1: HĐ Nguyên Tắc" : "Cuộn nhanh đến Trang 1: Hợp Đồng Chính"}
             >
-              {isHdld ? '📄 Trang 1: HĐ Lao Động' : '📄 Trang 1: Hợp Đồng'}
+              {isHdld ? '📄 Trang 1: HĐ Lao Động' : isHdnt ? '📄 Trang 1: HĐ Nguyên Tắc' : '📄 Trang 1: Hợp Đồng'}
             </button>
             <button
               className={`mini-doc-nav-pill ${activePageTab === 'page2' ? 'active' : ''}`}
               onClick={() => scrollToPage('page2')}
-              title={isHdld ? "Cuộn nhanh đến Trang 2: Bảng Mô Tả Công Việc (JD)" : "Cuộn nhanh đến Trang 2: Phụ Lục 01 (Thưởng & KPI)"}
+              title={isHdld ? "Cuộn nhanh đến Trang 2: Bảng Mô Tả Công Việc (JD)" : isHdnt ? "Cuộn nhanh đến Trang 2: Phụ Lục 01 (Bảng Giá & Chiết Khấu)" : "Cuộn nhanh đến Trang 2: Phụ Lục 01 (Thưởng & KPI)"}
             >
-              {isHdld ? '📋 Trang 2: Mô Tả Công Việc (JD)' : '📊 Trang 2: Phụ Lục 01'}
+              {isHdld ? '📋 Trang 2: Mô Tả Công Việc (JD)' : isHdnt ? '📊 Trang 2: Phụ Lục 01 (Bảng Giá & CK)' : '📊 Trang 2: Phụ Lục 01'}
             </button>
           </div>
 
@@ -745,6 +798,16 @@ export default function ContractMiniDocEditor({
                   title="Thêm 1 nhiệm vụ mới vào Bảng Mô Tả Công Việc"
                 >
                   + Thêm Nhiệm Vụ JD
+                </button>
+              )}
+              {isHdnt && (
+                <button
+                  className="mini-doc-tool-btn"
+                  onClick={handleAddNewProductRow}
+                  style={{ color: '#4f46e5', borderColor: '#4f46e5' }}
+                  title="Thêm 1 dòng sản phẩm mới vào đơn hàng mẫu Phụ lục 01"
+                >
+                  + Thêm Sản Phẩm Đơn Hàng
                 </button>
               )}
             </div>
@@ -987,6 +1050,288 @@ export default function ContractMiniDocEditor({
                     </tbody>
                   </table>
                 </>
+              ) : isHdnt ? (
+                <>
+                  <div className="cp-title-area">
+                    <div className="cp-title editable-zone">HỢP ĐỒNG NGUYÊN TẮC</div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#4b5563', marginTop: '2px' }} className="editable-zone">
+                      (Về việc: Mua bán & Phân phối sản phẩm Genki Fami Nhật Bản)
+                    </div>
+                    <div className="cp-code editable-zone">Số: {contract.contractCode}</div>
+                  </div>
+
+                  {/* Căn cứ pháp lý */}
+                  <div className="cp-preamble editable-zone">
+                    <div>- Căn cứ Bộ luật Dân sự số 91/2015/QH13 đã được Quốc hội nước CHXHCN Việt Nam thông qua ngày 24/11/2015;</div>
+                    <div>- Căn cứ Luật Thương mại số 36/2005/QH11 đã được Quốc hội nước CHXHCN Việt Nam thông qua ngày 14/06/2005;</div>
+                    <div>- Căn cứ vào nhu cầu, chức năng và khả năng thực tế của hai bên.</div>
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '14px' }}>
+                    Hôm nay, ngày {formatDate(contract.startDate)}, tại Văn phòng Công ty Cổ phần Genki Fami Việt Nam, chúng tôi gồm có:
+                  </div>
+
+                  {/* Bên A */}
+                  <div className="cp-party-section">
+                    <div className="cp-party-title editable-zone">BÊN A (Bên bán): CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM</div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Đại diện:</strong> Ông LÊ TRÍ NAM &nbsp;&nbsp;&nbsp;&nbsp; <strong>Chức vụ:</strong> Giám đốc Kinh Doanh
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Địa chỉ trụ sở:</strong> Số 107 ngõ 192 Lê Trọng Tấn, tổ 1, P. Định Công, Q. Hoàng Mai, TP. Hà Nội.
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Văn phòng:</strong> Tầng 4, Tòa nhà Detech, Số 8 Tôn Thất Thuyết, P. Mỹ Đình 2, Q. Nam Từ Liêm, Hà Nội.
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Mã số thuế:</strong> 0109405781 &nbsp;&nbsp;&nbsp;&nbsp; <strong>Điện thoại:</strong> 024.6291.6888
+                    </div>
+                  </div>
+
+                  <div className="editable-zone" style={{ margin: '6px 0', fontStyle: 'italic', fontWeight: 600 }}>Và</div>
+
+                  {/* Bên B */}
+                  <div className="cp-party-section">
+                    {partyBType === 'ENTERPRISE' ? (
+                      <>
+                        <div className="cp-party-title editable-zone">
+                          BÊN B (Bên mua): {partyBCompany?.toUpperCase() || person?.fullName?.toUpperCase() || 'ĐƠN VỊ ĐỐI TÁC'}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Địa chỉ:</strong> {partyBAddress}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Mã số thuế:</strong> {partyBTax || person?.taxNumber || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
+                          <strong>Điện thoại:</strong> {phone}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Người đại diện:</strong> {partyBRepresentative} &nbsp;&nbsp;&nbsp;&nbsp;
+                          <strong>Chức vụ:</strong> {partyBPosition}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Tài khoản ngân hàng:</strong> {person?.bankAccount || '—'} tại {person?.bankName || 'Ngân hàng TMCP'}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="cp-party-title editable-zone">
+                          BÊN B (Bên mua/Đại lý): {person?.genderTitle || 'ÔNG/BÀ'} {person?.fullName?.toUpperCase() || 'ĐẠI LÝ BÁN LẺ'}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Ngày sinh:</strong> {person?.dateOfBirth ? formatDate(person.dateOfBirth) : '—'}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Số CCCD:</strong> {identityNumber} &nbsp;&nbsp;&nbsp;&nbsp;
+                          <strong>Ngày cấp:</strong> {identityDate} &nbsp;&nbsp;&nbsp;&nbsp;
+                          <strong>Nơi cấp:</strong> {identityPlace}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Địa chỉ thường trú:</strong> {address}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Điện thoại:</strong> {phone} &nbsp;&nbsp;&nbsp;&nbsp;
+                          <strong>Email:</strong> {email}
+                        </div>
+                        <div className="cp-party-field editable-zone">
+                          <strong>Tài khoản ngân hàng:</strong> {person?.bankAccount || '—'} tại {person?.bankName || 'Ngân hàng TMCP'}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '14px', fontStyle: 'italic' }}>
+                    Hai bên thống nhất ký kết Hợp đồng nguyên tắc với các điều khoản và điều kiện cụ thể sau:
+                  </div>
+
+                  {/* 16 Điều khoản HĐNT */}
+                  <div className="cp-articles-container">
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 1. ĐỐI TƯỢNG HỢP ĐỒNG</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Bên A đồng ý cung cấp và Bên B đồng ý mua các sản phẩm Thực phẩm bảo vệ sức khỏe và Dinh dưỡng cao cấp mang thương hiệu Genki Fami xuất xứ Nhật Bản do Bên A nhập khẩu và phân phối độc quyền tại Việt Nam.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Quy cách, chủng loại, đơn giá niêm yết, tỷ lệ chiết khấu và danh mục sản phẩm đơn hàng mẫu được quy định chi tiết tại <strong>Phụ Lục 01</strong> đính kèm theo Hợp đồng này.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 2. TIÊU CHUẨN VÀ CHẤT LƯỢNG HÀNG HÓA</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Hàng hóa do Bên A cung cấp đảm bảo 100% chính hãng, có nguồn gốc xuất xứ rõ ràng, đầy đủ Giấy tiếp nhận đăng ký bản công bố sản phẩm do Cục An toàn thực phẩm – Bộ Y tế cấp phép lưu hành.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Hàng hóa có đầy đủ tem phụ tiếng Việt, tem niêm phong / chống hàng giả và hướng dẫn sử dụng theo quy định của pháp luật Việt Nam. Hạn sử dụng của sản phẩm tại thời điểm giao hàng còn tối thiểu 18 tháng.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 3. CHÍNH SÁCH BẢO HÀNH VÀ ĐỔI TRẢ HÀNG</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Bên A chịu trách nhiệm đổi mới 100% miễn phí cho Bên B đối với hàng hóa bị lỗi do nhà sản xuất (hư hỏng bao bì, biến màu, biến tính hoặc lỗi quy cách đóng gói).
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Thời hạn thông báo đổi trả: Trong vòng <strong>07 (bảy) ngày làm việc</strong> kể từ ngày Bên B nhận được hàng. Quá thời hạn trên, Bên A không chịu trách nhiệm giải quyết đổi trả hàng hóa.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 4. GIÁ CẢ VÀ PHƯƠNG THỨC ĐẶT HÀNG</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Giá bán hàng hóa áp dụng theo Bảng giá bán lẻ niêm yết chính thức của Genki Fami tại thời điểm phát sinh đơn đặt hàng.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Phương thức đặt hàng: Bên B thực hiện gửi Đơn đặt hàng (Purchase Order - PO) thông qua Cổng thông tin đại lý trên phần mềm <strong>MISA AMIS CRM</strong> hoặc qua văn bản/email chính thức cho Bên A. Đơn đặt hàng có giá trị ràng buộc sau khi Bên A xác nhận đơn.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 5. CHIẾT KHẤU THƯƠNG MẠI</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Bên B được hưởng mức chiết khấu thương mại cơ bản là <strong>{discountRate}%</strong> tính trực tiếp trên đơn giá bán lẻ niêm yết trước thuế và được trừ ngay trên hóa đơn tài chính của từng đơn hàng.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Mức chiết khấu và cơ chế tính toán chi tiết cho từng mã sản phẩm được thể hiện cụ thể tại <strong>Phụ Lục 01</strong> kèm theo Hợp đồng này.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 6. PHƯƠNG THỨC GIAO NHẬN VÀ VẬN CHUYỂN</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Địa điểm giao hàng: Tại kho hoặc địa chỉ do Bên B chỉ định trên lãnh thổ Việt Nam.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Chi phí vận chuyển: Bên A hỗ trợ chi phí vận chuyển tiêu chuẩn cho các đơn hàng đạt giá trị tối thiểu theo chính sách bán hàng từng thời kỳ. Bên B có trách nhiệm cử đại diện kiểm đếm niêm phong, số lượng và ký biên bản giao nhận ngay khi nhận hàng.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 7. PHƯƠNG THỨC THANH TOÁN & CHÍNH SÁCH CÔNG NỢ GỐI ĐẦU</div>
+                      <div className="cp-article-text editable-zone">
+                        1. <strong>Chính sách công nợ gối đầu (Đơn hàng đầu tiên):</strong> Bên A chấp thuận cho Bên B áp dụng chính sách gối đầu thanh toán đối với đơn hàng đầu tiên với hạn mức công nợ tối đa là <span style={{ fontWeight: 700, color: '#006964' }}>{formatVND(firstOrderDebt)}</span> <em>(Bằng chữ: {numberToVietnameseWords(firstOrderDebt)})</em>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Khoản nợ gối đầu này là khoản bảo chứng kinh doanh và sẽ được Bên B <strong>tất toán 100% cho Bên A khi hai bên thanh lý Hợp đồng nguyên tắc</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        3. Đối với các đơn hàng phát sinh tiếp theo: Bên B thực hiện thanh toán chuyển khoản 100% trước khi Bên A xuất kho giao hàng hoặc thanh toán khi nhận hàng (COD) theo văn bản xác nhận của Bên A.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        4. Hình thức thanh toán: Chuyển khoản vào tài khoản ngân hàng chỉ định của Bên A tại Ngân hàng TMCP Đầu tư và Phát triển Việt Nam (BIDV) hoặc các tài khoản ngân hàng chính thức do Bên A công bố.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 8. NGHĨA VỤ CỦA BÊN A</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Cung cấp hàng hóa đúng chủng loại, chất lượng, tiêu chuẩn và thời hạn đã cam kết trong đơn hàng.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Cung cấp đầy đủ hồ sơ pháp lý công bố sản phẩm, hóa đơn điện tử hợp pháp và tài liệu đào tạo chuyên môn, chứng chỉ kiểm nghiệm.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        3. Hướng dẫn Bên B sử dụng phần mềm MISA AMIS CRM để quản lý thông tin khách hàng, đơn hàng và tiến độ giao hàng.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 9. QUYỀN HẠN CỦA BÊN A</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Có quyền từ chối xuất giao hàng nếu Bên B chưa hoàn tất nghĩa vụ thanh toán theo thỏa thuận hoặc có dấu hiệu bán phá giá làm tổn hại hệ thống.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Được quyền kiểm tra định kỳ hoặc đột xuất việc Bên B tuân thủ giá bán niêm yết trên các kênh phân phối (online và offline).
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 10. NGHĨA VỤ CỦA BÊN B</div>
+                      <div className="cp-article-text editable-zone">
+                        1. <strong>Bảo vệ giá niêm yết:</strong> Cam kết bán lẻ đúng bảng giá niêm yết của Genki Fami. <em>Tuyệt đối không được bán phá giá, bán dưới giá niêm yết</em> trên các nền tảng thương mại điện tử (Shopee, Lazada, TikTok Shop,...) hoặc mạng xã hội.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Bảo quản hàng hóa tại kho sạch sẽ, thoáng mát, khô ráo, tránh ánh nắng trực tiếp theo đúng hướng dẫn trên nhãn mác.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        3. Thực hiện thanh toán đúng hạn các đơn hàng và quyết toán dứt điểm khoản nợ gối đầu đơn đầu tiên khi thanh lý hợp đồng.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 11. QUYỀN HẠN CỦA BÊN B</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Được hưởng đầy đủ mức chiết khấu thương mại {discountRate}% và các chương trình ưu đãi, khuyến mại của Bên A từng thời kỳ.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Được hỗ trợ hình ảnh, video, ấn phẩm POSM và tài liệu nghiên cứu lâm sàng để phục vụ tư vấn bán hàng.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 12. PHẠT VI PHẠM HỢP ĐỒNG VÀ BỒI THƯỜNG THIỆT HẠI</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Bên nào vi phạm bất kỳ nghĩa vụ nào theo Hợp đồng này mà không khắc phục trong vòng 07 ngày kể từ ngày nhận thông báo bằng văn bản của bên kia thì phải chịu mức phạt vi phạm bằng <strong>8% (tám phần trăm) giá trị phần nghĩa vụ bị vi phạm</strong> theo Điều 301 Luật Thương mại 2005.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Ngoài tiền phạt vi phạm, bên vi phạm có nghĩa vụ bồi thường toàn bộ thiệt hại thực tế, trực tiếp phát sinh cho bên bị vi phạm.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 13. BẢO MẬT THÔNG TIN VÀ SỞ HỮU TRÍ TUỆ</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Hai bên cam kết bảo mật tuyệt đối toàn bộ thông tin về chính sách giá, mức chiết khấu, thông tin khách hàng, bí quyết kinh doanh và danh sách đối tác. Cam kết này có hiệu lực trong thời hạn hợp đồng và kéo dài <strong>24 (hai mươi bốn) tháng</strong> sau khi hợp đồng chấm dứt.
+                      </div>
+                      <div className="cp-article-text editable-zone" style={{ fontWeight: 600, color: '#991b1b', background: 'rgba(239, 68, 68, 0.06)', padding: '6px 8px', borderRadius: '4px' }}>
+                        2. Trường hợp Bên B làm rò rỉ dữ liệu đối tác, khách hàng hoặc cung cấp thông tin thương mại của Genki Fami cho bên thứ ba, Bên B phải chịu mức phạt chế tài là <strong>100.000.000 VNĐ (Một trăm triệu đồng)</strong> cho mỗi lần vi phạm và bồi thường tổn thất phát sinh.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 14. TRƯỜNG HỢP BẤT KHẢ KHÁNG</div>
+                      <div className="cp-article-text editable-zone">
+                        Các sự kiện bất khả kháng (thiên tai, dịch bệnh, chiến tranh, thay đổi chính sách pháp luật cấm nhập khẩu lưu hành hàng hóa) được xử lý theo quy định của Bộ luật Dân sự. Bên gặp sự kiện phải thông báo cho bên kia trong vòng 03 ngày làm việc.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 15. GIẢI QUYẾT TRANH CHẤP</div>
+                      <div className="cp-article-text editable-zone">
+                        Mọi tranh chấp phát sinh được ưu tiên thương lượng giải quyết trên tinh thần hợp tác. Trường hợp không tự hòa giải được trong vòng 30 ngày, tranh chấp sẽ được đưa ra giải quyết tại Tòa án nhân dân có thẩm quyền tại Thành phố Hà Nội.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 16. HIỆU LỰC VÀ ĐIỀU KHOẢN THI HÀNH</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Hợp đồng nguyên tắc này có hiệu lực kể từ ngày <strong>{formatDate(contract.startDate)}</strong> đến hết ngày <strong>{formatDate(contract.endDate)}</strong>. Khi hết hạn, nếu hai bên không có ý kiến bằng văn bản và vẫn tiếp tục phát sinh đơn hàng thì hợp đồng tự động gia hạn thêm 01 (một) năm tiếp theo.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Hợp đồng này được lập thành 02 (hai) bản có giá trị pháp lý như nhau, mỗi bên giữ 01 (một) bản để thực hiện.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chữ ký Trang 1 HĐNT */}
+                  <table className="cp-signatures-table no-break">
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN A</div>
+                          <div className="cp-signature-note editable-zone">(Ký, đóng dấu và ghi rõ họ tên)</div>
+                          <div className="cp-signature-name editable-zone">LÊ TRÍ NAM</div>
+                        </td>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN B</div>
+                          <div className="cp-signature-note editable-zone">(Ký, ghi rõ họ tên và đóng dấu nếu có)</div>
+                          <div className="cp-signature-name editable-zone">
+                            {partyBRepresentative?.toUpperCase() || person?.fullName?.toUpperCase() || 'BÊN B'}
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
               ) : (
                 <>
                   <div className="cp-title-area">
@@ -1138,7 +1483,7 @@ export default function ContractMiniDocEditor({
 
             {/* ĐƯỜNG PHÂN TRANG TRỰC QUAN GIỮA 2 TRANG A4 */}
             <div className="contract-paper-page-separator no-print">
-              <span>{isHdld ? 'HẾT TRANG 1 — BẮT ĐẦU TRANG 2 (BẢNG MÔ TẢ CÔNG VIỆC - JD)' : 'HẾT TRANG 1 — BẮT ĐẦU TRANG 2 (PHỤ LỤC 01)'}</span>
+              <span>{isHdld ? 'HẾT TRANG 1 — BẮT ĐẦU TRANG 2 (BẢNG MÔ TẢ CÔNG VIỆC - JD)' : isHdnt ? 'HẾT TRANG 1 — BẮT ĐẦU TRANG 2 (PHỤ LỤC 01: BẢNG GIÁ & ĐƠN HÀNG MẪU)' : 'HẾT TRANG 1 — BẮT ĐẦU TRANG 2 (PHỤ LỤC 01)'}</span>
             </div>
 
             {/* TRANG 2: BẢNG MÔ TẢ CÔNG VIỆC (JD) HOẶC PHỤ LỤC 01 */}
@@ -1253,6 +1598,134 @@ export default function ContractMiniDocEditor({
                           <div className="cp-signature-note editable-zone">(Ký và ghi rõ họ tên)</div>
                           <div className="cp-signature-name editable-zone" style={{ marginTop: '40px' }}>
                             {person?.fullName?.toUpperCase() || 'NGƯỜI LAO ĐỘNG'}
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
+              ) : isHdnt ? (
+                <>
+                  <div className="cp-title-area">
+                    <div className="cp-title editable-zone" style={{ fontSize: '16px' }}>
+                      PHỤ LỤC 01: BẢNG GIÁ NIÊM YẾT, MỨC CHIẾT KHẤU & ĐƠN HÀNG MẪU
+                    </div>
+                    <div className="cp-code editable-zone">
+                      (Ban hành kèm theo Hợp đồng nguyên tắc số: {contract.contractCode})
+                    </div>
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '14px', fontStyle: 'italic' }}>
+                    Căn cứ thỏa thuận tại Điều 4, Điều 5 và Điều 7 của Hợp đồng nguyên tắc, hai bên thống nhất chi tiết Bảng giá, mức chiết khấu và danh mục đơn hàng mẫu áp dụng chính sách công nợ gối đầu như sau:
+                  </div>
+
+                  {/* Commercial summary cards */}
+                  <div className="editable-zone" style={{ marginBottom: '10px' }}>
+                    <strong>1. Mức chiết khấu thương mại cơ bản:</strong>{' '}
+                    <span style={{ fontWeight: 700, color: '#006964', fontSize: '15px' }}>{discountRate}%</span> tính trên Bảng giá bán lẻ niêm yết của Genki Fami.
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '10px' }}>
+                    <strong>2. Hạn mức công nợ gối đầu (Đơn hàng đầu tiên):</strong>{' '}
+                    <span style={{ fontWeight: 700, color: '#b45309', fontSize: '15px' }}>{formatVND(firstOrderDebt)}</span>
+                    <br />
+                    <em>(Bằng chữ: {numberToVietnameseWords(firstOrderDebt)})</em>
+                    <div style={{ fontSize: '12.5px', color: '#4b5563', marginTop: '3px' }}>
+                      * Khoản nợ gối đầu được kích hoạt ngay sau khi ký hợp đồng và bàn giao đơn hàng đầu tiên; Bên B tất toán dứt điểm khi thanh lý HĐ.
+                    </div>
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '14px' }}>
+                    <strong>3. Quy trình đặt hàng các đợt tiếp theo:</strong> Đặt hàng trực tuyến qua Cổng đại lý phần mềm <strong>MISA AMIS CRM</strong>. Thanh toán 100% trước khi giao hoặc COD.
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '8px', fontWeight: 700 }}>
+                    4. Danh mục đơn hàng đầu tiên áp dụng chính sách gối đầu công nợ:
+                  </div>
+
+                  {/* Bảng sản phẩm 7 cột */}
+                  <table className="cp-data-table no-break">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '6%', textAlign: 'center' }}>STT</th>
+                        <th style={{ width: '14%' }}>Mã SKU</th>
+                        <th>Tên Sản Phẩm Genki Fami</th>
+                        <th style={{ width: '8%', textAlign: 'center' }}>ĐVT</th>
+                        <th style={{ width: '16%', textAlign: 'right' }}>Đơn Giá Niêm Yết</th>
+                        <th style={{ width: '8%', textAlign: 'center' }}>SL</th>
+                        <th style={{ width: '12%', textAlign: 'right' }}>Chiết Khấu ({discountRate}%)</th>
+                        <th style={{ width: '18%', textAlign: 'right' }}>Thành Tiền Sau CK</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orderProducts.map((prod, idx) => {
+                        const price = Number(prod.price || 0);
+                        const qty = Number(prod.quantity || 1);
+                        const totalBefore = price * qty;
+                        const discAmt = Math.round(totalBefore * (discountRate / 100));
+                        const totalAfter = totalBefore - discAmt;
+
+                        return (
+                          <tr key={idx} className="product-row">
+                            <td style={{ textAlign: 'center' }}>{idx + 1}</td>
+                            <td className="editable-cell">{prod.sku}</td>
+                            <td className="editable-cell"><strong>{prod.name}</strong></td>
+                            <td style={{ textAlign: 'center' }} className="editable-cell">{prod.unit || 'Hộp'}</td>
+                            <td style={{ textAlign: 'right' }} className="editable-cell">{formatVND(price)}</td>
+                            <td style={{ textAlign: 'center' }} className="editable-cell">{qty}</td>
+                            <td style={{ textAlign: 'right' }} className="editable-cell">-{formatVND(discAmt)}</td>
+                            <td style={{ textAlign: 'right', fontWeight: 700 }} className="editable-cell">{formatVND(totalAfter)}</td>
+                          </tr>
+                        );
+                      })}
+                      {/* Summary calculation rows */}
+                      {(() => {
+                        const totalListed = orderProducts.reduce((sum, p) => sum + (Number(p.price || 0) * Number(p.quantity || 1)), 0);
+                        const totalDiscount = Math.round(totalListed * (discountRate / 100));
+                        const totalPayable = totalListed - totalDiscount;
+
+                        return (
+                          <>
+                            <tr className="summary-row" style={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>
+                              <td colSpan={6} style={{ textAlign: 'right' }}>Tổng giá trị theo giá niêm yết:</td>
+                              <td colSpan={2} style={{ textAlign: 'right' }}>{formatVND(totalListed)}</td>
+                            </tr>
+                            <tr className="summary-row" style={{ backgroundColor: '#f8fafc', fontWeight: 600, color: '#dc2626' }}>
+                              <td colSpan={6} style={{ textAlign: 'right' }}>Tổng tiền chiết khấu thương mại ({discountRate}%):</td>
+                              <td colSpan={2} style={{ textAlign: 'right' }}>-{formatVND(totalDiscount)}</td>
+                            </tr>
+                            <tr className="summary-row" style={{ backgroundColor: 'rgba(0, 105, 100, 0.08)', fontWeight: 700, fontSize: '13.5px', color: '#006964' }}>
+                              <td colSpan={6} style={{ textAlign: 'right' }}>TỔNG TIỀN THANH TOÁN (HẠN MỨC NỢ GỐI ĐẦU):</td>
+                              <td colSpan={2} style={{ textAlign: 'right' }}>{formatVND(totalPayable)}</td>
+                            </tr>
+                          </>
+                        );
+                      })()}
+                    </tbody>
+                  </table>
+
+                  <div className="editable-zone" style={{ marginTop: '14px', marginBottom: '8px', fontSize: '13px' }}>
+                    <em>* Số tiền bằng chữ: <strong>{numberToVietnameseWords(firstOrderDebt)}</strong>.</em>
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '18px', fontSize: '12.5px', color: '#4b5563' }}>
+                    Phụ lục 01 này là bộ phận cấu thành không thể tách rời của Hợp đồng nguyên tắc số <strong>{contract.contractCode}</strong>, có hiệu lực đồng thời với hợp đồng và được lập thành 02 bản có giá trị pháp lý ngang nhau.
+                  </div>
+
+                  {/* Chữ ký Phụ Lục 01 */}
+                  <table className="cp-signatures-table no-break" style={{ marginTop: '30px' }}>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN A</div>
+                          <div className="cp-signature-note editable-zone">(Ký, đóng dấu và ghi rõ họ tên)</div>
+                          <div className="cp-signature-name editable-zone">LÊ TRÍ NAM</div>
+                        </td>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN B</div>
+                          <div className="cp-signature-note editable-zone">(Ký, ghi rõ họ tên và đóng dấu nếu có)</div>
+                          <div className="cp-signature-name editable-zone">
+                            {partyBRepresentative?.toUpperCase() || person?.fullName?.toUpperCase() || 'BÊN B'}
                           </div>
                         </td>
                       </tr>

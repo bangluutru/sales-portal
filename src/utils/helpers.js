@@ -200,11 +200,11 @@ export function compileContractTemplate(templateContent, data = {}) {
     '{{party_a_phone}}': data.partyAPhone || '(+84) 438.53.9696',
     '{{party_a_representative}}': data.partyARepresentative || 'Ông Lê Trí Nam',
     '{{party_a_position}}': data.partyAPosition || 'Giám đốc Kinh Doanh',
-    '{{party_b_name}}': (data.fullName || data.partyBName || 'ĐỐI TÁC').toUpperCase(),
+    '{{party_b_name}}': (data.partyBCompany || data.partyBName || data.fullName || 'ĐỐI TÁC').toUpperCase(),
     '{{party_b_gender_title}}': genderTitle.toUpperCase(),
     '{{party_b_dob}}': data.dateOfBirth ? formatDate(data.dateOfBirth) : '—',
-    '{{party_b_address}}': data.address || '—',
-    '{{party_b_current_address}}': data.currentAddress || data.address || '—',
+    '{{party_b_address}}': data.partyBAddress || data.address || '—',
+    '{{party_b_current_address}}': data.currentAddress || data.partyBAddress || data.address || '—',
     '{{party_b_cccd}}': data.identityNumber || data.partyBCccd || '—',
     '{{party_b_cccd_date}}': data.identityDate ? (data.identityDate.includes('-') ? formatDate(data.identityDate) : data.identityDate) : '15/06/2021',
     '{{party_b_cccd_place}}': data.identityPlace || 'Cục Cảnh sát QLHC về TTXH',
@@ -237,7 +237,17 @@ export function compileContractTemplate(templateContent, data = {}) {
     '{{job_title}}': data.jobTitle || 'Nhân viên Điều phối Kho vận & Hỗ trợ Kinh doanh',
     '{{department}}': data.department || 'Phòng Quản lý Kho vận & Hỗ trợ Kinh doanh',
     '{{report_to}}': data.reportTo || 'Trưởng phòng Vận hành / Ban Giám đốc',
-    '{{direct_supervisor}}': data.directSupervisor || data.reportTo || 'Trưởng phòng Vận hành'
+    '{{direct_supervisor}}': data.directSupervisor || data.reportTo || 'Trưởng phòng Vận hành',
+
+    // HDNT principle / master agreement placeholders
+    '{{discount_rate}}': String(data.discountRate !== undefined ? data.discountRate : 18),
+    '{{first_order_debt}}': formatVND(data.firstOrderDebt || 12021200),
+    '{{first_order_debt_words}}': numberToVietnameseWords(Number(data.firstOrderDebt || 12021200)),
+    '{{credit_limit}}': formatVND(data.creditLimit || 15000000),
+    '{{party_b_tax_or_cccd}}': data.partyBTax || data.partyBCccd || data.identityNumber || data.taxNumber || '—',
+    '{{party_b_representative}}': data.partyBRepresentative || data.fullName || '—',
+    '{{party_b_position}}': data.partyBPosition || (data.partyBType === 'ENTERPRISE' ? 'Giám Đốc' : 'Đại diện / CTV'),
+    '{{party_b_type}}': data.partyBType || 'ENTERPRISE'
   };
 
   for (const [placeholder, val] of Object.entries(replacements)) {
