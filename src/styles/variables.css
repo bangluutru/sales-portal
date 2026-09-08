@@ -1,0 +1,61 @@
+/* Genki Fami Design System Tokens */
+:root {
+  /* Brand Palette */
+  --gf-primary: #006964;          /* Main brand teal */
+  --gf-primary-hover: #005652;
+  --gf-primary-light: #e6f3f0;
+  --gf-secondary: #51BF9D;        /* Mint accent & success */
+  --gf-secondary-light: #eaf8f4;
+  --gf-accent: #A71D45;           /* Magenta critical / alert */
+  --gf-accent-light: #fbebf0;
+  --gf-tint: #D7EDE6;             /* Calm background tint */
+  --gf-ink: #191919;              /* Deep text and dark surfaces */
+  
+  /* Neutral Palette */
+  --bg-app: #f8faf9;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f5f3;
+  --border-color: #e2e8e5;
+  --border-light: #edf2ef;
+  --text-primary: #191919;
+  --text-secondary: #52605b;
+  --text-muted: #7c8d87;
+  --text-inverse: #ffffff;
+
+  /* Semantic Status Colors */
+  --status-pending-bg: #fef9c3;
+  --status-pending-text: #854d0e;
+  --status-approved-bg: #dcfce7;
+  --status-approved-text: #166534;
+  --status-action-bg: #e0f2fe;
+  --status-action-text: #075985;
+  --status-rejected-bg: #fee2e2;
+  --status-rejected-text: #991b1b;
+  --status-completed-bg: #d1fae5;
+  --status-completed-text: #065f46;
+  --status-paid-bg: #ecfdf5;
+  --status-paid-text: #047857;
+  --status-draft-bg: #f3f4f6;
+  --status-draft-text: #4b5563;
+
+  /* Typography */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Elevation & Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 40, 35, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 40, 35, 0.08), 0 2px 4px -1px rgba(0, 40, 35, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 40, 35, 0.1), 0 4px 6px -2px rgba(0, 40, 35, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 40, 35, 0.15), 0 10px 10px -5px rgba(0, 40, 35, 0.06);
+
+  /* Borders & Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}

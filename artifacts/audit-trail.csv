@@ -1,0 +1,4 @@
+timestamp,step,role,action,reference,notes
+2026-09-08T09:38:09.051470+00:00,0,Chủ thầu,RRI_completed,BP-001,"Khảo sát Bước 0 hoàn tất, lập bản vẽ kiến trúc"
+2026-09-08T09:39:34.649056+00:00,1,Chủ nhà,Blueprint_approved,BP-001,Chủ nhà đã phê duyệt Blueprint BP-001 và Kế hoạch thi công
+2026-09-08T10:40:41.203039+00:00,7,Chủ thầu,Verif_passed,CR-005,"Nghiệm thu thành công 100% qua verify.py, sẵn sàng bàn giao cho Chủ nhà"
