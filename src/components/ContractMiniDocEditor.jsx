@@ -32,6 +32,27 @@ export default function ContractMiniDocEditor({
   const yearBonusRate = contract.yearBonusRate ?? 0.2;
 
   const isHtkd = template?.id === 'TPL-HTKD' || contract.contractType === 'HTKD';
+  const isHdld = template?.id === 'TPL-HDLD' || contract.contractType === 'HDLD' || contract.templateId === 'TPL-HDLD';
+
+  // HĐLĐ specific fields
+  const baseSalary = Number(contract.salary || 7491370);
+  const performanceBonus = Number(contract.performanceBonus || contract.allowance || 1278630);
+  const mealAllowance = Number(contract.mealAllowance || 730000);
+  const contractDuration = contract.contractDuration || '02 năm';
+  const probationPeriod = contract.probationPeriod || `Từ ngày ${formatDate(contract.startDate)} đến ... (Hưởng 85% lương)`;
+  const workLocation = contract.workLocation || 'Số 19/48 Nguyễn Cửu Đàm, P Tân Sơn Nhì, Q. Tân Phú, TP Hồ Chí Minh';
+  const workHours = contract.workHours || '48 giờ/tuần';
+  const weeklyRest = contract.weeklyRest || '1,5 ngày (Thứ 7, Chủ Nhật)';
+  const jobTitle = contract.jobTitle || person?.position || 'Nhân viên Kho kiêm hỗ trợ kinh doanh';
+  const department = contract.department || 'Kho vận & Vận hành';
+  const reportTo = contract.reportTo || 'Phụ trách Kho vận & Ban Giám Đốc';
+  const address = person?.address || '—';
+  const identityNumber = person?.identityNumber || '—';
+  const identityDate = person?.identityDate || '—';
+  const identityPlace = person?.identityPlace || 'Cục Cảnh sát QLHC về TTXH';
+  const phone = person?.phone || '—';
+  const email = person?.email || '—';
+  const position = contract.jobTitle || person?.position || 'Cán bộ - Công nhân viên';
 
   // Zoom Controls state (75%, 90%, 100%, 125%, 150%)
   const [zoomLevel, setZoomLevel] = useState(1.0);
@@ -207,6 +228,26 @@ export default function ContractMiniDocEditor({
       tableBody.appendChild(tr);
       setIsDirty(true);
       showFeedback('✓ Đã thêm 1 bậc thưởng mới vào bảng Phụ Lục 01');
+    }
+  };
+
+  // Add new row into JD table (HĐLĐ)
+  const handleAddNewJdRow = () => {
+    if (!page2Ref.current) return;
+    const tableBody = page2Ref.current.querySelector('.cp-data-table tbody');
+    if (tableBody) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight: 700; vertical-align: top;">
+          <div class="editable-zone" contenteditable="${isEditMode}">Nhiệm vụ bổ sung</div>
+        </td>
+        <td style="vertical-align: top;">
+          <div class="editable-zone" contenteditable="${isEditMode}">• Mô tả chi tiết công việc và trách nhiệm bổ sung theo phân công...</div>
+        </td>
+      `;
+      tableBody.appendChild(tr);
+      setIsDirty(true);
+      showFeedback('✓ Đã thêm nhiệm vụ mới vào Bảng JD');
     }
   };
 
@@ -485,16 +526,16 @@ export default function ContractMiniDocEditor({
             <button
               className={`mini-doc-nav-pill ${activePageTab === 'page1' ? 'active' : ''}`}
               onClick={() => scrollToPage('page1')}
-              title="Cuộn nhanh đến Trang 1: Hợp Đồng Chính"
+              title={isHdld ? "Cuộn nhanh đến Trang 1: HĐ Lao Động" : "Cuộn nhanh đến Trang 1: Hợp Đồng Chính"}
             >
-              📄 Trang 1: Hợp Đồng
+              {isHdld ? '📄 Trang 1: HĐ Lao Động' : '📄 Trang 1: Hợp Đồng'}
             </button>
             <button
               className={`mini-doc-nav-pill ${activePageTab === 'page2' ? 'active' : ''}`}
               onClick={() => scrollToPage('page2')}
-              title="Cuộn nhanh đến Trang 2: Phụ Lục 01 (Thưởng & KPI)"
+              title={isHdld ? "Cuộn nhanh đến Trang 2: Bảng Mô Tả Công Việc (JD)" : "Cuộn nhanh đến Trang 2: Phụ Lục 01 (Thưởng & KPI)"}
             >
-              📊 Trang 2: Phụ Lục 01
+              {isHdld ? '📋 Trang 2: Mô Tả Công Việc (JD)' : '📊 Trang 2: Phụ Lục 01'}
             </button>
           </div>
 
@@ -696,6 +737,16 @@ export default function ContractMiniDocEditor({
                   + Thêm Hàng Thưởng
                 </button>
               )}
+              {isHdld && (
+                <button
+                  className="mini-doc-tool-btn"
+                  onClick={handleAddNewJdRow}
+                  style={{ color: '#0284c7', borderColor: '#0284c7' }}
+                  title="Thêm 1 nhiệm vụ mới vào Bảng Mô Tả Công Việc"
+                >
+                  + Thêm Nhiệm Vụ JD
+                </button>
+              )}
             </div>
 
             <div className="mini-doc-tool-group">
@@ -744,157 +795,353 @@ export default function ContractMiniDocEditor({
               </div>
 
               {/* Tiêu đề & Mã Hợp đồng */}
-              <div className="cp-title-area">
-                <div className="cp-title editable-zone">
-                  {isHtkd ? 'HỢP ĐỒNG HỢP TÁC KINH DOANH' : template?.name?.toUpperCase() || 'HỢP ĐỒNG DỊCH VỤ'}
-                </div>
-                <div className="cp-code editable-zone">Số: {contract.contractCode}</div>
-              </div>
+              {isHdld ? (
+                <>
+                  <div className="cp-title-area">
+                    <div className="cp-title editable-zone">HỢP ĐỒNG LAO ĐỘNG</div>
+                    <div className="cp-code editable-zone">Số: {contract.contractCode}</div>
+                  </div>
 
-              {/* Căn cứ pháp lý */}
-              <div className="cp-preamble editable-zone">
-                <div>- Căn cứ Bộ luật Dân sự số 91/2015/QH13 đã được Quốc hội nước Cộng hòa Xã hội Chủ nghĩa Việt Nam thông qua ngày 24/11/2015 và có hiệu lực từ ngày 01/01/2017;</div>
-                <div>- Căn cứ nhu cầu và năng lực thực tế của hai bên.</div>
-              </div>
+                  {/* Căn cứ pháp lý */}
+                  <div className="cp-preamble editable-zone">
+                    <div>- Căn cứ Bộ luật Lao động số 45/2019/QH14 được Quốc hội nước CHXHCN Việt Nam thông qua ngày 20/11/2019;</div>
+                    <div>- Căn cứ nhu cầu sản xuất kinh doanh của Công ty và khả năng của người lao động.</div>
+                  </div>
 
-              <div className="editable-zone" style={{ marginBottom: '14px' }}>
-                Hôm nay, ngày {formatDate(contract.startDate)}, tại Văn phòng Công ty Cổ phần Genki Fami Việt Nam, chúng tôi gồm có:
-              </div>
+                  <div className="editable-zone" style={{ marginBottom: '14px' }}>
+                    Hôm nay, ngày {formatDate(contract.startDate)}, tại Văn phòng Công ty Cổ phần Genki Fami Việt Nam, chúng tôi gồm có:
+                  </div>
 
-              {/* Bên A */}
-              <div className="cp-party-section">
-                <div className="cp-party-title editable-zone">BÊN A (Khách hàng): CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM</div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Đại diện:</strong> Ông LÊ TRÍ NAM &nbsp;&nbsp;&nbsp;&nbsp; <strong>Chức vụ:</strong> Giám đốc Kinh Doanh
-                </div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Địa chỉ:</strong> Tầng 4, Tòa nhà Detech, Số 8 Tôn Thất Thuyết, Mỹ Đình 2, Nam Từ Liêm, Hà Nội
-                </div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Mã số thuế:</strong> 0109405781 &nbsp;&nbsp;&nbsp;&nbsp; <strong>Điện thoại:</strong> 024.6291.6888
-                </div>
-              </div>
+                  {/* Bên A */}
+                  <div className="cp-party-section">
+                    <div className="cp-party-title editable-zone">Người sử dụng lao động: CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM</div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Đại diện:</strong> Ông TRẦN HẢI BẰNG &nbsp;&nbsp;&nbsp;&nbsp; <strong>Chức vụ:</strong> Tổng Giám đốc
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Địa chỉ trụ sở:</strong> Số 107 ngõ 192 Lê Trọng Tấn, tổ 1, P. Định Công, Q. Hoàng Mai, TP. Hà Nội.
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Mã số thuế:</strong> 0109405781 &nbsp;&nbsp;&nbsp;&nbsp; <strong>Điện thoại:</strong> 024.6291.6888
+                    </div>
+                  </div>
 
-              {/* Bên B */}
-              <div className="cp-party-section">
-                <div className="cp-party-title editable-zone">
-                  BÊN B (Chuyên gia/Đối tác): {person?.genderTitle || 'ÔNG/BÀ'} {person?.fullName?.toUpperCase() || 'ĐỐI TÁC'}
-                </div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Ngày sinh:</strong> {person?.dateOfBirth ? formatDate(person.dateOfBirth) : '—'}
-                </div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Số CCCD:</strong> {person?.identityNumber || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
-                  <strong>Ngày cấp:</strong> {person?.identityDate || '15/06/2021'} &nbsp;&nbsp;&nbsp;&nbsp;
-                  <strong>Nơi cấp:</strong> {person?.identityPlace || 'Cục Cảnh sát QLHC về TTXH'}
-                </div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Địa chỉ thường trú:</strong> {person?.address || '—'}
-                </div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Nơi ở hiện tại:</strong> {person?.currentAddress || person?.address || '—'}
-                </div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Điện thoại:</strong> {person?.phone || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
-                  <strong>Email:</strong> {person?.email || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
-                  <strong>Mã số thuế:</strong> {person?.taxNumber || '—'}
-                </div>
-                <div className="cp-party-field editable-zone">
-                  <strong>Tài khoản ngân hàng:</strong> {person?.bankAccount} tại {person?.bankName} ({person?.bankBranch || 'Chi nhánh Hà Nội'})
-                </div>
-              </div>
+                  <div className="editable-zone" style={{ margin: '6px 0', fontStyle: 'italic', fontWeight: 600 }}>Và</div>
 
-              <div className="editable-zone" style={{ marginBottom: '14px', fontStyle: 'italic' }}>
-                Hai bên cùng thỏa thuận và nhất trí ký kết Hợp đồng với các điều khoản sau:
-              </div>
+                  {/* Bên B */}
+                  <div className="cp-party-section">
+                    <div className="cp-party-title editable-zone">
+                      Người lao động: {person?.genderTitle || 'ÔNG/BÀ'} {person?.fullName?.toUpperCase() || 'NGƯỜI LAO ĐỘNG'}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Sinh ngày:</strong> {person?.dateOfBirth ? formatDate(person.dateOfBirth) : '—'} &nbsp;&nbsp;&nbsp;&nbsp;
+                      <strong>Nghề nghiệp:</strong> {position}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Địa chỉ thường trú:</strong> {address}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Số CCCD:</strong> {identityNumber} &nbsp;&nbsp;&nbsp;&nbsp;
+                      <strong>Ngày cấp:</strong> {identityDate} &nbsp;&nbsp;&nbsp;&nbsp;
+                      <strong>Nơi cấp:</strong> {identityPlace}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Điện thoại:</strong> {phone} &nbsp;&nbsp;&nbsp;&nbsp;
+                      <strong>Email:</strong> {email}
+                    </div>
+                  </div>
 
-              {/* Danh sách điều khoản */}
-              <div className="cp-articles-container">
-                <div className="cp-article-block">
-                  <div className="cp-article-title editable-zone">ĐIỀU 1. NỘI DUNG VÀ PHẠM VI CÔNG VIỆC</div>
-                  <div className="cp-article-text editable-zone">
-                    1. Bên A đồng ý hợp tác và Bên B đồng ý nhận thực hiện công việc tư vấn, phát triển thị trường, kết nối đối tác phân phối sản phẩm thực phẩm bảo vệ sức khỏe và dinh dưỡng cao cấp thương hiệu Genki Fami Nhật Bản.
+                  <div className="editable-zone" style={{ marginBottom: '14px', fontStyle: 'italic' }}>
+                    Thoả thuận ký kết Hợp đồng lao động và cam kết làm đúng những điều khoản sau đây:
                   </div>
-                  <div className="cp-article-text editable-zone">
-                    2. Địa bàn phát triển kinh doanh: <strong>{contract.territoryDescription || 'Toàn quốc'}</strong>.
-                  </div>
-                  <div className="cp-article-text editable-zone">
-                    3. Mục tiêu công việc: Xây dựng mạng lưới nhà thuốc, đại lý và khách hàng chiến lược; đạt chỉ tiêu KPI theo thỏa thuận.
-                  </div>
-                </div>
 
-                <div className="cp-article-block">
-                  <div className="cp-article-title editable-zone">ĐIỀU 2. THỜI HẠN HỢP ĐỒNG</div>
-                  <div className="cp-article-text editable-zone">
-                    1. Hợp đồng có hiệu lực từ ngày <strong>{formatDate(contract.startDate)}</strong> đến hết ngày <strong>{formatDate(contract.endDate)}</strong>.
-                  </div>
-                  <div className="cp-article-text editable-zone">
-                    2. Thời gian thử thách năng lực thực tế: <strong>{probationMonths} tháng</strong> kể từ ngày bắt đầu có hiệu lực.
-                  </div>
-                  <div className="cp-article-text editable-zone">
-                    3. Hết thời hạn hợp đồng, nếu hai bên có nhu cầu tiếp tục hợp tác sẽ tiến hành gia hạn bằng phụ lục hoặc hợp đồng mới.
-                  </div>
-                </div>
+                  {/* Điều khoản HĐLĐ */}
+                  <div className="cp-articles-container">
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 1. THỜI HẠN VÀ ĐỊA ĐIỂM LÀM VIỆC</div>
+                      <div className="cp-article-text editable-zone">
+                        1. {person?.genderTitle || 'Ông/Bà'} {person?.fullName} làm việc theo loại Hợp đồng lao động thời hạn <strong>{contractDuration}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Bắt đầu từ ngày: <strong>{formatDate(contract.startDate)}</strong> đến hết ngày <strong>{formatDate(contract.endDate)}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        3. Thời gian thử việc: <strong>{probationPeriod}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        4. Tại địa điểm: <strong>{workLocation}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        5. Chức danh chuyên môn: <strong>{jobTitle}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        6. Công việc phải làm: Theo bảng mô tả công việc (đính kèm tại Trang 2).
+                      </div>
+                    </div>
 
-                <div className="cp-article-block">
-                  <div className="cp-article-title editable-zone">ĐIỀU 3. QUYỀN VÀ NGHĨA VỤ CỦA CÁC BÊN</div>
-                  <div className="cp-article-text editable-zone">
-                    1. Quyền và nghĩa vụ của Bên A: Cung cấp đầy đủ hồ sơ pháp lý sản phẩm, tài liệu chuyên môn, hóa đơn bán hàng; thanh toán thù lao và các khoản thưởng kinh doanh đúng hạn; thực hiện nghĩa vụ khấu trừ thuế TNCN theo quy định pháp luật.
-                  </div>
-                  <div className="cp-article-text editable-zone">
-                    2. Quyền và nghĩa vụ của Bên B: Tận tâm thực hiện công việc, bảo vệ hình ảnh thương hiệu Genki Fami; tuân thủ bảng giá niêm yết và chính sách bán lẻ, tuyệt đối không bán phá giá; báo cáo định kỳ kết quả tiếp cận thị trường cho Quản lý vùng.
-                  </div>
-                </div>
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 2. CHẾ ĐỘ LÀM VIỆC</div>
+                      <div className="cp-article-text editable-zone">
+                        - Thời giờ làm việc: <strong>{workHours}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Được cấp phát những dụng cụ: Cần thiết theo yêu cầu công việc.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Điều kiện an toàn và vệ sinh lao động tại nơi làm việc theo quy định hiện hành của Nhà nước.
+                      </div>
+                    </div>
 
-                <div className="cp-article-block">
-                  <div className="cp-article-title editable-zone">ĐIỀU 4. THÙ LAO VÀ PHƯƠNG THỨC THANH TOÁN</div>
-                  <div className="cp-article-text editable-zone">
-                    1. Cơ chế chi trả thù lao cố định (PCB), phí hỗ trợ khai thác (PKT), chỉ tiêu doanh thu KPI tháng, thang thưởng bậc thang doanh số, thưởng Quý và thưởng Năm được quy định chi tiết tại Phụ Lục 01 đính kèm - là bộ phận cấu thành không thể tách rời của Hợp đồng này.
-                  </div>
-                  <div className="cp-article-text editable-zone">
-                    2. Phương thức thanh toán: Chuyển khoản qua tài khoản ngân hàng của Bên B từ ngày 10 đến ngày 15 hàng tháng.
-                  </div>
-                  <div className="cp-article-text editable-zone">
-                    3. Hợp đồng này là hợp đồng dịch vụ dân sự, không cấu thành quan hệ lao động theo Bộ luật Lao động.
-                  </div>
-                </div>
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 3. NGHĨA VỤ VÀ QUYỀN LỢI CỦA NGƯỜI LAO ĐỘNG</div>
+                      <div className="cp-article-text editable-zone" style={{ fontWeight: 700, marginTop: '4px' }}>
+                        1. Quyền lợi:
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Phương tiện đi lại làm việc: Cá nhân tự túc.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - <strong>Lương chức danh (đóng BHXH):</strong> <span style={{ fontWeight: 700, color: '#006964' }}>{formatVND(baseSalary)} / tháng</span> <em>(Bằng chữ: {numberToVietnameseWords(baseSalary)})</em>
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - <strong>Thưởng hiệu suất:</strong> <span style={{ fontWeight: 700 }}>{formatVND(performanceBonus)} / tháng</span> (Theo chính sách công ty).
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - <strong>Phụ cấp ăn ca:</strong> <span style={{ fontWeight: 700, color: '#b45309' }}>{formatVND(mealAllowance)} / tháng</span> (Mức chuẩn 730.000 VNĐ theo Thông tư 26/2016/TT-BLĐTBXH miễn thuế TNCN).
+                      </div>
+                      <div className="cp-article-text editable-zone" style={{ fontStyle: 'italic', fontSize: '12.5px', color: '#4b5563' }}>
+                        * Các phụ cấp, chi phí và thưởng đã bao gồm Thuế thu nhập cá nhân do người lao động chi trả.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Hình thức trả lương: Trả 01 lần vào ngày 05 hàng tháng hoặc theo quy định công ty từng thời kỳ.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Tiền thưởng & Chế độ nâng lương: Theo quy định và chính sách của Công ty.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Bảo hiểm xã hội, Bảo hiểm y tế, BHTN: Theo quy định của pháp luật hiện hành.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Nghỉ hàng tuần: <strong>{weeklyRest}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Chế độ đào tạo: Bồi dưỡng chuyên môn theo yêu cầu. Cam kết phục vụ lâu dài, hoàn trả 100% chi phí và chế độ đã nhận nếu nghỉ việc sau đào tạo.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Những thỏa thuận khác: Trong 15 ngày làm việc đầu tiên nếu chấm dứt HĐ không yêu cầu thanh toán chế độ; Báo trước 45 ngày khi muốn chấm dứt hợp đồng trước hạn.
+                      </div>
 
-                <div className="cp-article-block">
-                  <div className="cp-article-title editable-zone">ĐIỀU 5. ĐIỀU KHOẢN THI HÀNH</div>
-                  <div className="cp-article-text editable-zone">
-                    1. Hợp đồng có hiệu lực kể từ ngày ký. Mọi sửa đổi, bổ sung phải được lập thành văn bản (Phụ lục hợp đồng).
-                  </div>
-                  <div className="cp-article-text editable-zone">
-                    2. Hợp đồng được lập thành 02 (hai) bản bằng tiếng Việt, có giá trị pháp lý như nhau, mỗi bên giữ 01 (một) bản.
-                  </div>
-                </div>
-              </div>
+                      <div className="cp-article-text editable-zone" style={{ fontWeight: 700, marginTop: '8px' }}>
+                        2. Nghĩa vụ:
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Hoàn thành những nội dung đã cam kết và những công việc trong Hợp đồng; chấp hành nội quy lao động, an toàn và kỷ luật lao động.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        - Tuyệt đối không sử dụng khách hàng của công ty để trục lợi cá nhân; không kinh doanh mâu thuẫn lợi ích với Công ty.
+                      </div>
+                      <div className="cp-article-text editable-zone" style={{ fontWeight: 600, color: '#991b1b', background: 'rgba(239, 68, 68, 0.06)', padding: '6px 8px', borderRadius: '4px' }}>
+                        - Cam kết bảo mật & Chống cạnh tranh: Trong thời gian hợp đồng và trong vòng 24 THÁNG kể từ khi nghỉ việc tại Công ty, người lao động tuyệt đối không cung cấp thông tin, tiết lộ bí mật kinh doanh ra ngoài; không hợp tác, sản xuất, kinh doanh, làm đại lý, tiết lộ thông tin khách hàng, mặt hàng sản phẩm tương tự của Genki Fami. Mọi vi phạm sẽ bị truy cứu trách nhiệm trước pháp luật.
+                      </div>
+                    </div>
 
-              {/* Chữ ký Trang 1 */}
-              <table className="cp-signatures-table no-break">
-                <tbody>
-                  <tr>
-                    <td>
-                      <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN A</div>
-                      <div className="cp-signature-note editable-zone">(Ký, ghi rõ họ tên và đóng dấu)</div>
-                      <div className="cp-signature-name editable-zone">LÊ TRÍ NAM</div>
-                    </td>
-                    <td>
-                      <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN B</div>
-                      <div className="cp-signature-note editable-zone">(Ký và ghi rõ họ tên)</div>
-                      <div className="cp-signature-name editable-zone">{person?.fullName?.toUpperCase()}</div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 4. NGHĨA VỤ VÀ QUYỀN HẠN CỦA NGƯỜI SỬ DỤNG LAO ĐỘNG</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Nghĩa vụ: Bảo đảm việc làm; thanh toán đầy đủ các chế độ theo hợp đồng; bảo quản và hoàn trả văn bằng chứng chỉ gốc (nếu có).
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Quyền hạn: Điều hành người lao động hoàn thành công việc; tạm hoãn, chấm dứt hợp đồng lao động, kỷ luật lao động theo quy định pháp luật và nội quy công ty.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 5. ĐIỀU KHOẢN THI HÀNH</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Những vấn đề về lao động không ghi trong hợp đồng này áp dụng theo nội quy lao động và quy định của pháp luật lao động hiện hành.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Hợp đồng lao động này được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản và có hiệu lực từ ngày <strong>{formatDate(contract.startDate)}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        Hợp đồng làm tại: Số 107 ngõ 192 Lê Trọng Tấn, tổ 1, P. Định Công, Q. Hoàng Mai, TP. Hà Nội.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chữ ký Trang 1 HĐLĐ */}
+                  <table className="cp-signatures-table no-break">
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN NGƯỜI LAO ĐỘNG</div>
+                          <div className="cp-signature-note editable-zone">(Ký và ghi rõ họ tên)</div>
+                          <div className="cp-signature-name editable-zone">{person?.fullName?.toUpperCase() || 'NGƯỜI LAO ĐỘNG'}</div>
+                        </td>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN NGƯỜI SỬ DỤNG LAO ĐỘNG</div>
+                          <div className="cp-signature-note editable-zone">(Ký, đóng dấu và ghi rõ họ tên)</div>
+                          <div className="cp-signature-name editable-zone">TRẦN HẢI BẰNG</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
+              ) : (
+                <>
+                  <div className="cp-title-area">
+                    <div className="cp-title editable-zone">
+                      {isHtkd ? 'HỢP ĐỒNG HỢP TÁC KINH DOANH' : template?.name?.toUpperCase() || 'HỢP ĐỒNG DỊCH VỤ'}
+                    </div>
+                    <div className="cp-code editable-zone">Số: {contract.contractCode}</div>
+                  </div>
+
+                  {/* Căn cứ pháp lý */}
+                  <div className="cp-preamble editable-zone">
+                    <div>- Căn cứ Bộ luật Dân sự số 91/2015/QH13 đã được Quốc hội nước Cộng hòa Xã hội Chủ nghĩa Việt Nam thông qua ngày 24/11/2015 và có hiệu lực từ ngày 01/01/2017;</div>
+                    <div>- Căn cứ nhu cầu và năng lực thực tế của hai bên.</div>
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '14px' }}>
+                    Hôm nay, ngày {formatDate(contract.startDate)}, tại Văn phòng Công ty Cổ phần Genki Fami Việt Nam, chúng tôi gồm có:
+                  </div>
+
+                  {/* Bên A */}
+                  <div className="cp-party-section">
+                    <div className="cp-party-title editable-zone">BÊN A (Khách hàng): CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM</div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Đại diện:</strong> Ông LÊ TRÍ NAM &nbsp;&nbsp;&nbsp;&nbsp; <strong>Chức vụ:</strong> Giám đốc Kinh Doanh
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Địa chỉ:</strong> Tầng 4, Tòa nhà Detech, Số 8 Tôn Thất Thuyết, Mỹ Đình 2, Nam Từ Liêm, Hà Nội
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Mã số thuế:</strong> 0109405781 &nbsp;&nbsp;&nbsp;&nbsp; <strong>Điện thoại:</strong> 024.6291.6888
+                    </div>
+                  </div>
+
+                  {/* Bên B */}
+                  <div className="cp-party-section">
+                    <div className="cp-party-title editable-zone">
+                      BÊN B (Chuyên gia/Đối tác): {person?.genderTitle || 'ÔNG/BÀ'} {person?.fullName?.toUpperCase() || 'ĐỐI TÁC'}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Ngày sinh:</strong> {person?.dateOfBirth ? formatDate(person.dateOfBirth) : '—'}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Số CCCD:</strong> {person?.identityNumber || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
+                      <strong>Ngày cấp:</strong> {person?.identityDate || '15/06/2021'} &nbsp;&nbsp;&nbsp;&nbsp;
+                      <strong>Nơi cấp:</strong> {person?.identityPlace || 'Cục Cảnh sát QLHC về TTXH'}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Địa chỉ thường trú:</strong> {person?.address || '—'}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Nơi ở hiện tại:</strong> {person?.currentAddress || person?.address || '—'}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Điện thoại:</strong> {person?.phone || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
+                      <strong>Email:</strong> {person?.email || '—'} &nbsp;&nbsp;&nbsp;&nbsp;
+                      <strong>Mã số thuế:</strong> {person?.taxNumber || '—'}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Tài khoản ngân hàng:</strong> {person?.bankAccount} tại {person?.bankName} ({person?.bankBranch || 'Chi nhánh Hà Nội'})
+                    </div>
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '14px', fontStyle: 'italic' }}>
+                    Hai bên cùng thỏa thuận và nhất trí ký kết Hợp đồng với các điều khoản sau:
+                  </div>
+
+                  {/* Danh sách điều khoản */}
+                  <div className="cp-articles-container">
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 1. NỘI DUNG VÀ PHẠM VI CÔNG VIỆC</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Bên A đồng ý hợp tác và Bên B đồng ý nhận thực hiện công việc tư vấn, phát triển thị trường, kết nối đối tác phân phối sản phẩm thực phẩm bảo vệ sức khỏe và dinh dưỡng cao cấp thương hiệu Genki Fami Nhật Bản.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Địa bàn phát triển kinh doanh: <strong>{contract.territoryDescription || 'Toàn quốc'}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        3. Mục tiêu công việc: Xây dựng mạng lưới nhà thuốc, đại lý và khách hàng chiến lược; đạt chỉ tiêu KPI theo thỏa thuận.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 2. THỜI HẠN HỢP ĐỒNG</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Hợp đồng có hiệu lực từ ngày <strong>{formatDate(contract.startDate)}</strong> đến hết ngày <strong>{formatDate(contract.endDate)}</strong>.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Thời gian thử thách năng lực thực tế: <strong>{probationMonths} tháng</strong> kể từ ngày bắt đầu có hiệu lực.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        3. Hết thời hạn hợp đồng, nếu hai bên có nhu cầu tiếp tục hợp tác sẽ tiến hành gia hạn bằng phụ lục hoặc hợp đồng mới.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 3. QUYỀN VÀ NGHĨA VỤ CỦA CÁC BÊN</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Quyền và nghĩa vụ của Bên A: Cung cấp đầy đủ hồ sơ pháp lý sản phẩm, tài liệu chuyên môn, hóa đơn bán hàng; thanh toán thù lao và các khoản thưởng kinh doanh đúng hạn; thực hiện nghĩa vụ khấu trừ thuế TNCN theo quy định pháp luật.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Quyền và nghĩa vụ của Bên B: Tận tâm thực hiện công việc, bảo vệ hình ảnh thương hiệu Genki Fami; tuân thủ bảng giá niêm yết và chính sách bán lẻ, tuyệt đối không bán phá giá; báo cáo định kỳ kết quả tiếp cận thị trường cho Quản lý vùng.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 4. THÙ LAO VÀ PHƯƠNG THỨC THANH TOÁN</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Cơ chế chi trả thù lao cố định (PCB), phí hỗ trợ khai thác (PKT), chỉ tiêu doanh thu KPI tháng, thang thưởng bậc thang doanh số, thưởng Quý và thưởng Năm được quy định chi tiết tại Phụ Lục 01 đính kèm - là bộ phận cấu thành không thể tách rời của Hợp đồng này.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Phương thức thanh toán: Chuyển khoản qua tài khoản ngân hàng của Bên B từ ngày 10 đến ngày 15 hàng tháng.
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        3. Hợp đồng này là hợp đồng dịch vụ dân sự, không cấu thành quan hệ lao động theo Bộ luật Lao động.
+                      </div>
+                    </div>
+
+                    <div className="cp-article-block">
+                      <div className="cp-article-title editable-zone">ĐIỀU 5. ĐIỀU KHOẢN THI HÀNH</div>
+                      <div className="cp-article-text editable-zone">
+                        1. Hợp đồng có hiệu lực kể từ ngày ký. Mọi sửa đổi, bổ sung phải được lập thành văn bản (Phụ lục hợp đồng).
+                      </div>
+                      <div className="cp-article-text editable-zone">
+                        2. Hợp đồng được lập thành 02 (hai) bản bằng tiếng Việt, có giá trị pháp lý như nhau, mỗi bên giữ 01 (một) bản.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chữ ký Trang 1 */}
+                  <table className="cp-signatures-table no-break">
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN A</div>
+                          <div className="cp-signature-note editable-zone">(Ký, ghi rõ họ tên và đóng dấu)</div>
+                          <div className="cp-signature-name editable-zone">LÊ TRÍ NAM</div>
+                        </td>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN B</div>
+                          <div className="cp-signature-note editable-zone">(Ký và ghi rõ họ tên)</div>
+                          <div className="cp-signature-name editable-zone">{person?.fullName?.toUpperCase()}</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
+              )}
             </div>
 
             {/* ĐƯỜNG PHÂN TRANG TRỰC QUAN GIỮA 2 TRANG A4 */}
             <div className="contract-paper-page-separator no-print">
-              <span>HẾT TRANG 1 &mdash; BẮT ĐẦU TRANG 2 (PHỤ LỤC 01)</span>
+              <span>{isHdld ? 'HẾT TRANG 1 — BẮT ĐẦU TRANG 2 (BẢNG MÔ TẢ CÔNG VIỆC - JD)' : 'HẾT TRANG 1 — BẮT ĐẦU TRANG 2 (PHỤ LỤC 01)'}</span>
             </div>
 
-            {/* TRANG 2: PHỤ LỤC 01 (CƠ CHẾ THÙ LAO & THƯỞNG KINH DOANH) */}
+            {/* TRANG 2: BẢNG MÔ TẢ CÔNG VIỆC (JD) HOẶC PHỤ LỤC 01 */}
             <div className="contract-paper contract-paper-appendix" ref={page2Ref} id="contract-page-2">
               <div className="cp-national-header">
                 <div className="cp-country editable-zone">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
@@ -902,115 +1149,229 @@ export default function ContractMiniDocEditor({
                 <div className="cp-divider"></div>
               </div>
 
-              <div className="cp-title-area">
-                <div className="cp-title editable-zone" style={{ fontSize: '16px' }}>
-                  PHỤ LỤC 01: CƠ CHẾ CHI TRẢ THÙ LAO VÀ THƯỞNG KINH DOANH
-                </div>
-                <div className="cp-code editable-zone">
-                  (Ban hành kèm theo Hợp đồng số: {contract.contractCode})
-                </div>
-              </div>
+              {isHdld ? (
+                <>
+                  <div className="cp-title-area">
+                    <div className="cp-title editable-zone" style={{ fontSize: '17px' }}>
+                      BẢNG MÔ TẢ CÔNG VIỆC (JOB DESCRIPTION)
+                    </div>
+                    <div className="cp-code editable-zone">
+                      (Đính kèm theo Hợp đồng lao động số: {contract.contractCode})
+                    </div>
+                  </div>
 
-              <div className="editable-zone" style={{ marginBottom: '14px', fontStyle: 'italic' }}>
-                Căn cứ thỏa thuận tại Điều 4 của Hợp đồng Hợp tác Kinh doanh, hai bên thống nhất chi tiết mức thù lao, chỉ tiêu KPI và thang thưởng như sau:
-              </div>
+                  <div className="cp-party-section" style={{ marginBottom: '16px' }}>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Chức vụ:</strong> {jobTitle}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Bộ phận:</strong> {department}
+                    </div>
+                    <div className="cp-party-field editable-zone">
+                      <strong>Báo cáo cho:</strong> {reportTo}
+                    </div>
+                  </div>
 
-              <div className="editable-zone" style={{ marginBottom: '10px' }}>
-                <strong>1. Phí dịch vụ cơ bản (PCB):</strong>{' '}
-                <span style={{ fontWeight: 700, color: '#006964' }}>{formatVND(pcb)} / tháng</span>
-                <br />
-                <em>(Bằng chữ: {numberToVietnameseWords(pcb)})</em>
-              </div>
+                  <div className="editable-zone" style={{ marginBottom: '8px', fontWeight: 700 }}>
+                    Trách nhiệm chính & Nhiệm vụ cụ thể:
+                  </div>
 
-              <div className="editable-zone" style={{ marginBottom: '10px' }}>
-                <strong>2. Phí hỗ trợ khai thác thị trường (PKT):</strong>{' '}
-                <span style={{ fontWeight: 700 }}>{formatVND(pkt)} / tháng</span>
-                <br />
-                <em>(Bằng chữ: {numberToVietnameseWords(pkt)})</em>
-              </div>
+                  {/* Bảng phân công 2 cột */}
+                  <table className="cp-data-table no-break">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '30%' }}>Nhiệm vụ</th>
+                        <th style={{ width: '70%' }}>Công việc cụ thể</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ fontWeight: 700, verticalAlign: 'top' }}>
+                          <div className="editable-zone">Điều phối hàng hoá và kho vận</div>
+                        </td>
+                        <td style={{ verticalAlign: 'top' }}>
+                          <div className="editable-zone">
+                            <div style={{ marginBottom: '4px' }}>• Tuân thủ các quy định pháp luật, quy trình nội bộ về quản lý hàng hóa. Đảm bảo quy tắc PCCC, vệ sinh kho, bảo quản hàng hóa theo tiêu chuẩn.</div>
+                            <div style={{ marginBottom: '4px' }}>• Lập sơ đồ kho, phân chia khu vực lưu trữ hàng hóa và sắp xếp khoa học, dễ tìm kiếm, kiểm kê.</div>
+                            <div style={{ marginBottom: '4px' }}>• Tiếp nhận đơn đặt hàng từ phần mềm, soạn hàng, đóng gói, dán nhãn, chuẩn bị chứng từ liên quan.</div>
+                            <div style={{ marginBottom: '4px' }}>• Thực hiện công việc giao nhận, luân chuyển, kiểm kê hàng hóa định kỳ và đối chiếu số liệu với Kế toán.</div>
+                            <div>• Giám sát, tối ưu thời gian, chi phí cho hoạt động kho vận; đánh giá chất lượng dịch vụ đối tác vận chuyển.</div>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ fontWeight: 700, verticalAlign: 'top' }}>
+                          <div className="editable-zone">Hỗ trợ Kinh doanh</div>
+                        </td>
+                        <td style={{ verticalAlign: 'top' }}>
+                          <div className="editable-zone">
+                            <div style={{ marginBottom: '4px' }}>• Học cách sử dụng thành thạo phần mềm quản lý bán hàng (AMIS-CRM). Đảm bảo cập nhật đầy đủ thông tin khách hàng, hàng hoá, chính sách giá, báo giá theo khách hàng.</div>
+                            <div style={{ marginBottom: '4px' }}>• Hướng dẫn và hỗ trợ nhà phân phối, đại lý, cộng tác viên đặt đơn hàng qua cổng thông tin của phần mềm AMIS CRM.</div>
+                            <div style={{ marginBottom: '4px' }}>• Tiếp nhận và cập nhật đơn hàng vào hệ thống - AMIS CRM, theo dõi tiến độ giao hàng và phối hợp đối soát công nợ với Kế toán.</div>
+                            <div>• Phối hợp với Bộ phận Kinh doanh và Marketing trong xử lý Hợp đồng mua bán, thông báo thay đổi chính sách giá, chương trình khuyến mãi và xử lý khiếu nại khách hàng.</div>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ fontWeight: 700, verticalAlign: 'top' }}>
+                          <div className="editable-zone">Các công việc khác</div>
+                        </td>
+                        <td style={{ verticalAlign: 'top' }}>
+                          <div className="editable-zone">
+                            <div style={{ marginBottom: '4px' }}>• Tham gia các khóa đào tạo, bồi dưỡng nâng cao trình độ khi được công ty tạo điều kiện.</div>
+                            <div style={{ marginBottom: '4px' }}>• Làm các báo cáo công việc theo định kỳ, phát sinh.</div>
+                            <div style={{ marginBottom: '4px' }}>• Tham gia đầy đủ các cuộc họp của bộ phận, báo cáo các thông tin phản hồi từ khách để có giải pháp xử lý kịp thời.</div>
+                            <div>• Thực hiện các công việc chuyên môn khác theo phân công từ Ban Giám Đốc.</div>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
 
-              <div className="editable-zone" style={{ marginBottom: '14px' }}>
-                <strong>3. Chỉ tiêu doanh thu KPI tối thiểu:</strong>{' '}
-                <span style={{ fontWeight: 700, color: '#b45309' }}>{formatVND(kpi)} / tháng</span>
-                <br />
-                <em>(Bằng chữ: {numberToVietnameseWords(kpi)})</em>
-                <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '2px' }}>
-                  * Trường hợp đạt dưới 50% chỉ tiêu Doanh thu tối thiểu: Thu nhập nhận được = PCB.
-                </div>
-              </div>
+                  <div className="editable-zone" style={{ marginTop: '14px', marginBottom: '6px', fontWeight: 700 }}>
+                    Yêu cầu năng lực:
+                  </div>
+                  <div className="editable-zone" style={{ marginBottom: '14px', fontSize: '13px', lineHeight: 1.6 }}>
+                    <div>• Biết sử dụng các phần mềm tin học văn phòng (Google Sheet, Google Docs, CRM) và có khả năng học hỏi, ứng dụng phần mềm hỗ trợ công việc.</div>
+                    <div>• Trung thực, sắp xếp công việc khoa học, tỉ mỉ và có trách nhiệm, chủ động trong công việc và ham học hỏi.</div>
+                    <div>• Có sức khỏe tốt, có khả năng chịu được áp lực tiến độ công việc.</div>
+                  </div>
 
-              <div className="editable-zone" style={{ marginBottom: '8px', fontWeight: 700 }}>
-                4. Cơ chế thưởng theo bậc doanh thu đạt chuẩn tháng:
-              </div>
+                  <div className="editable-zone" style={{ marginTop: '16px', marginBottom: '16px', fontStyle: 'italic', fontWeight: 600, color: '#1f2937' }}>
+                    "Tôi đã đọc và được trao đổi với quản lý trực tiếp và tôi hoàn toàn hiểu mô tả về vị trí công việc của tôi."
+                  </div>
 
-              {/* Bảng bậc thang thưởng tháng */}
-              <table className="cp-data-table no-break">
-                <thead>
-                  <tr>
-                    <th style={{ width: '8%' }}>STT</th>
-                    <th style={{ width: '18%' }}>Mức Thưởng</th>
-                    <th>Doanh Số Mục Tiêu</th>
-                    <th style={{ width: '22%' }}>Phụ Cấp</th>
-                    <th style={{ width: '28%' }}>Thưởng Doanh Thu Thực Tế</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style={{ textAlign: 'center' }}>1</td>
-                    <td className="editable-cell"><strong>Mức 1</strong></td>
-                    <td className="editable-cell">120.000.000 đ ~ 200.000.000 đ</td>
-                    <td style={{ textAlign: 'right' }} className="editable-cell">1.000.000 đ</td>
-                    <td style={{ textAlign: 'right' }} className="editable-cell"><strong>1,0%</strong> Tổng Doanh Thu</td>
-                  </tr>
-                  <tr>
-                    <td style={{ textAlign: 'center' }}>2</td>
-                    <td className="editable-cell"><strong>Mức 2</strong></td>
-                    <td className="editable-cell">201.000.000 đ ~ 300.000.000 đ</td>
-                    <td style={{ textAlign: 'right' }} className="editable-cell">2.000.000 đ</td>
-                    <td style={{ textAlign: 'right' }} className="editable-cell"><strong>1,5%</strong> Tổng Doanh Thu</td>
-                  </tr>
-                  <tr>
-                    <td style={{ textAlign: 'center' }}>3</td>
-                    <td className="editable-cell"><strong>Mức 3</strong></td>
-                    <td className="editable-cell">301.000.000 đ ~ 500.000.000 đ</td>
-                    <td style={{ textAlign: 'right' }} className="editable-cell">3.000.000 đ</td>
-                    <td style={{ textAlign: 'right' }} className="editable-cell"><strong>2,0%</strong> Tổng Doanh Thu</td>
-                  </tr>
-                  <tr>
-                    <td style={{ textAlign: 'center' }}>4</td>
-                    <td className="editable-cell"><strong>Mức 4</strong></td>
-                    <td className="editable-cell">Trên 500.000.000 đ</td>
-                    <td style={{ textAlign: 'right' }} className="editable-cell">5.000.000 đ</td>
-                    <td style={{ textAlign: 'right' }} className="editable-cell"><strong>4,0%</strong> Tổng Doanh Thu</td>
-                  </tr>
-                </tbody>
-              </table>
+                  <table className="cp-signatures-table no-break" style={{ marginTop: '12px' }}>
+                    <tbody>
+                      <tr>
+                        <td style={{ textAlign: 'left', width: '60%' }}>
+                          <div className="editable-zone"><strong>Tên nhân viên:</strong> {person?.fullName?.toUpperCase() || 'NGƯỜI LAO ĐỘNG'}</div>
+                          <div className="editable-zone" style={{ marginTop: '6px' }}><strong>Ngày nhận việc:</strong> {formatDate(contract.startDate)}</div>
+                        </td>
+                        <td style={{ textAlign: 'center', width: '40%' }}>
+                          <div className="cp-signature-role editable-zone">Chữ ký nhân viên</div>
+                          <div className="cp-signature-note editable-zone">(Ký và ghi rõ họ tên)</div>
+                          <div className="cp-signature-name editable-zone" style={{ marginTop: '40px' }}>
+                            {person?.fullName?.toUpperCase() || 'NGƯỜI LAO ĐỘNG'}
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
+              ) : (
+                <>
+                  <div className="cp-title-area">
+                    <div className="cp-title editable-zone" style={{ fontSize: '16px' }}>
+                      PHỤ LỤC 01: CƠ CHẾ CHI TRẢ THÙ LAO VÀ THƯỞNG KINH DOANH
+                    </div>
+                    <div className="cp-code editable-zone">
+                      (Ban hành kèm theo Hợp đồng số: {contract.contractCode})
+                    </div>
+                  </div>
 
-              <div className="editable-zone" style={{ marginTop: '14px', marginBottom: '8px' }}>
-                <strong>5. Cơ chế thưởng Quý:</strong> Bên B được thưởng <strong>{quarterBonusRate}%</strong> trên tổng doanh thu thực tế của cả quý khi doanh số quý đạt tối thiểu 500.000.000 VNĐ.
-              </div>
+                  <div className="editable-zone" style={{ marginBottom: '14px', fontStyle: 'italic' }}>
+                    Căn cứ thỏa thuận tại Điều 4 của Hợp đồng Hợp tác Kinh doanh, hai bên thống nhất chi tiết mức thù lao, chỉ tiêu KPI và thang thưởng như sau:
+                  </div>
 
-              <div className="editable-zone" style={{ marginBottom: '18px' }}>
-                <strong>6. Cơ chế thưởng Năm:</strong> Bên B được thưởng <strong>{yearBonusRate}%</strong> trên tổng doanh số lũy kế cả năm khi hoàn thành xuất sắc chỉ tiêu và có thời gian công tác từ 6 tháng trở lên trong năm tài chính.
-              </div>
+                  <div className="editable-zone" style={{ marginBottom: '10px' }}>
+                    <strong>1. Phí dịch vụ cơ bản (PCB):</strong>{' '}
+                    <span style={{ fontWeight: 700, color: '#006964' }}>{formatVND(pcb)} / tháng</span>
+                    <br />
+                    <em>(Bằng chữ: {numberToVietnameseWords(pcb)})</em>
+                  </div>
 
-              {/* Chữ ký Phụ Lục 01 */}
-              <table className="cp-signatures-table no-break" style={{ marginTop: '40px' }}>
-                <tbody>
-                  <tr>
-                    <td>
-                      <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN A</div>
-                      <div className="cp-signature-note editable-zone">(Ký, ghi rõ họ tên và đóng dấu)</div>
-                      <div className="cp-signature-name editable-zone">LÊ TRÍ NAM</div>
-                    </td>
-                    <td>
-                      <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN B</div>
-                      <div className="cp-signature-note editable-zone">(Ký và ghi rõ họ tên)</div>
-                      <div className="cp-signature-name editable-zone">{person?.fullName?.toUpperCase()}</div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                  <div className="editable-zone" style={{ marginBottom: '10px' }}>
+                    <strong>2. Phí hỗ trợ khai thác thị trường (PKT):</strong>{' '}
+                    <span style={{ fontWeight: 700 }}>{formatVND(pkt)} / tháng</span>
+                    <br />
+                    <em>(Bằng chữ: {numberToVietnameseWords(pkt)})</em>
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '14px' }}>
+                    <strong>3. Chỉ tiêu doanh thu KPI tối thiểu:</strong>{' '}
+                    <span style={{ fontWeight: 700, color: '#b45309' }}>{formatVND(kpi)} / tháng</span>
+                    <br />
+                    <em>(Bằng chữ: {numberToVietnameseWords(kpi)})</em>
+                    <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '2px' }}>
+                      * Trường hợp đạt dưới 50% chỉ tiêu Doanh thu tối thiểu: Thu nhập nhận được = PCB.
+                    </div>
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '8px', fontWeight: 700 }}>
+                    4. Cơ chế thưởng theo bậc doanh thu đạt chuẩn tháng:
+                  </div>
+
+                  {/* Bảng bậc thang thưởng tháng */}
+                  <table className="cp-data-table no-break">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '8%' }}>STT</th>
+                        <th style={{ width: '18%' }}>Mức Thưởng</th>
+                        <th>Doanh Số Mục Tiêu</th>
+                        <th style={{ width: '22%' }}>Phụ Cấp</th>
+                        <th style={{ width: '28%' }}>Thưởng Doanh Thu Thực Tế</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ textAlign: 'center' }}>1</td>
+                        <td className="editable-cell"><strong>Mức 1</strong></td>
+                        <td className="editable-cell">120.000.000 đ ~ 200.000.000 đ</td>
+                        <td style={{ textAlign: 'right' }} className="editable-cell">1.000.000 đ</td>
+                        <td style={{ textAlign: 'right' }} className="editable-cell"><strong>1,0%</strong> Tổng Doanh Thu</td>
+                      </tr>
+                      <tr>
+                        <td style={{ textAlign: 'center' }}>2</td>
+                        <td className="editable-cell"><strong>Mức 2</strong></td>
+                        <td className="editable-cell">201.000.000 đ ~ 300.000.000 đ</td>
+                        <td style={{ textAlign: 'right' }} className="editable-cell">2.000.000 đ</td>
+                        <td style={{ textAlign: 'right' }} className="editable-cell"><strong>1,5%</strong> Tổng Doanh Thu</td>
+                      </tr>
+                      <tr>
+                        <td style={{ textAlign: 'center' }}>3</td>
+                        <td className="editable-cell"><strong>Mức 3</strong></td>
+                        <td className="editable-cell">301.000.000 đ ~ 500.000.000 đ</td>
+                        <td style={{ textAlign: 'right' }} className="editable-cell">3.000.000 đ</td>
+                        <td style={{ textAlign: 'right' }} className="editable-cell"><strong>2,0%</strong> Tổng Doanh Thu</td>
+                      </tr>
+                      <tr>
+                        <td style={{ textAlign: 'center' }}>4</td>
+                        <td className="editable-cell"><strong>Mức 4</strong></td>
+                        <td className="editable-cell">Trên 500.000.000 đ</td>
+                        <td style={{ textAlign: 'right' }} className="editable-cell">5.000.000 đ</td>
+                        <td style={{ textAlign: 'right' }} className="editable-cell"><strong>4,0%</strong> Tổng Doanh Thu</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <div className="editable-zone" style={{ marginTop: '14px', marginBottom: '8px' }}>
+                    <strong>5. Cơ chế thưởng Quý:</strong> Bên B được thưởng <strong>{quarterBonusRate}%</strong> trên tổng doanh thu thực tế của cả quý khi doanh số quý đạt tối thiểu 500.000.000 VNĐ.
+                  </div>
+
+                  <div className="editable-zone" style={{ marginBottom: '18px' }}>
+                    <strong>6. Cơ chế thưởng Năm:</strong> Bên B được thưởng <strong>{yearBonusRate}%</strong> trên tổng doanh số lũy kế cả năm khi hoàn thành xuất sắc chỉ tiêu và có thời gian công tác từ 6 tháng trở lên trong năm tài chính.
+                  </div>
+
+                  {/* Chữ ký Phụ Lục 01 */}
+                  <table className="cp-signatures-table no-break" style={{ marginTop: '40px' }}>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN A</div>
+                          <div className="cp-signature-note editable-zone">(Ký, ghi rõ họ tên và đóng dấu)</div>
+                          <div className="cp-signature-name editable-zone">LÊ TRÍ NAM</div>
+                        </td>
+                        <td>
+                          <div className="cp-signature-role editable-zone">ĐẠI DIỆN BÊN B</div>
+                          <div className="cp-signature-note editable-zone">(Ký và ghi rõ họ tên)</div>
+                          <div className="cp-signature-name editable-zone">{person?.fullName?.toUpperCase()}</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
+              )}
             </div>
 
           </div>

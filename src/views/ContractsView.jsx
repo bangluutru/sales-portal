@@ -54,6 +54,17 @@ export default function ContractsView() {
   const [additionalTerms, setAdditionalTerms] = useState('Tuân thủ quy chuẩn hình ảnh thương hiệu và bảng giá niêm yết của Genki Fami.');
   const [driveFolderUrl, setDriveFolderUrl] = useState('');
 
+  // HDLD specific parameters
+  const [performanceBonus, setPerformanceBonus] = useState('1278630');
+  const [mealAllowance, setMealAllowance] = useState('730000');
+  const [contractDuration, setContractDuration] = useState('02 năm');
+  const [probationPeriod, setProbationPeriod] = useState('02 tháng (Hưởng 85% tổng lương chức danh)');
+  const [workLocation, setWorkLocation] = useState('Số 19/48 Nguyễn Cửu Đàm, P Tân Sơn Nhì, Q. Tân Phú, TP Hồ Chí Minh');
+  const [workHours, setWorkHours] = useState('48 giờ/tuần (Thứ 2 đến Thứ 7: 8h00 - 17h00)');
+  const [jobTitle, setJobTitle] = useState('Nhân viên Điều phối Kho vận & Hỗ trợ Kinh doanh');
+  const [department, setDepartment] = useState('Phòng Quản lý Kho vận & Hỗ trợ Kinh doanh');
+  const [reportTo, setReportTo] = useState('Trưởng phòng Vận hành / Ban Giám đốc');
+
   const role = currentPerson.role;
 
   // Lọc hợp đồng theo phân quyền:
@@ -77,19 +88,35 @@ export default function ContractsView() {
   // Mở modal tạo từ template cụ thể
   const handleOpenCreateWithTemplate = (tplId) => {
     setTemplateId(tplId);
-    if (tplId.includes('HTKD')) {
+    if (tplId.includes('HDLD')) {
+      setContractType('HDLD');
+      setSalary('7491370');
+      setPerformanceBonus('1278630');
+      setMealAllowance('730000');
+      setContractDuration('02 năm');
+      setProbationPeriod('02 tháng (Hưởng 85% tổng lương chức danh)');
+      setWorkLocation('Số 19/48 Nguyễn Cửu Đàm, P Tân Sơn Nhì, Q. Tân Phú, TP Hồ Chí Minh');
+      setWorkHours('48 giờ/tuần (Thứ 2 đến Thứ 7: 8h00 - 17h00)');
+      setJobTitle('Nhân viên Điều phối Kho vận & Hỗ trợ Kinh doanh');
+      setDepartment('Phòng Quản lý Kho vận & Hỗ trợ Kinh doanh');
+      setReportTo('Trưởng phòng Vận hành / Ban Giám đốc');
+      setTerritoryDescription('Kho vận TP. Hồ Chí Minh & Hệ thống phân phối miền Nam');
+    } else if (tplId.includes('HTKD')) {
       setContractType('HTKD');
       setSalary('8000000');
       setAllowance('7000000');
       setKpiTargetRevenue('100000000');
+      setTerritoryDescription('Hà Nội và các tỉnh phía Bắc');
     } else if (tplId.includes('CTV')) {
       setContractType('CTV');
       setSalary('8000000');
       setAllowance('1500000');
+      setTerritoryDescription('Kênh đại lý & nhà thuốc khu vực');
     } else {
       setContractType('STAFF');
       setSalary('15000000');
       setAllowance('3000000');
+      setTerritoryDescription('Văn phòng Tổng công ty');
     }
     setShowCreateModal(true);
   };
@@ -104,6 +131,15 @@ export default function ContractsView() {
       endDate,
       salary: Number(salary) || 0,
       allowance: Number(allowance) || 0,
+      performanceBonus: Number(performanceBonus) || 0,
+      mealAllowance: Number(mealAllowance) || 730000,
+      contractDuration: contractDuration || '02 năm',
+      probationPeriod: probationPeriod || '02 tháng (Hưởng 85% tổng lương chức danh)',
+      workLocation: workLocation || 'Số 19/48 Nguyễn Cửu Đàm, P Tân Sơn Nhì, Q. Tân Phú, TP Hồ Chí Minh',
+      workHours: workHours || '48 giờ/tuần (Thứ 2 đến Thứ 7: 8h00 - 17h00)',
+      jobTitle: jobTitle || 'Nhân viên Điều phối Kho vận & Hỗ trợ Kinh doanh',
+      department: department || 'Phòng Quản lý Kho vận & Hỗ trợ Kinh doanh',
+      reportTo: reportTo || 'Trưởng phòng Vận hành / Ban Giám đốc',
       travelAllowance: Number(travelAllowance) || 0,
       kpiTargetRevenue: Number(kpiTargetRevenue) || 100000000,
       probationMonths: Number(probationMonths) || 3,
@@ -220,6 +256,7 @@ export default function ContractsView() {
                   {visibleContracts.map(c => {
                     const person = people.find(p => p.id === c.personId);
                     const isHtkd = c.templateId === 'TPL-HTKD' || c.contractType === 'HTKD';
+                    const isHdld = c.templateId === 'TPL-HDLD' || c.contractType === 'HDLD';
 
                     return (
                       <tr key={c.id}>
@@ -243,27 +280,45 @@ export default function ContractsView() {
                         <td>
                           <div>
                             <span className="badge" style={{
-                              backgroundColor: isHtkd ? 'rgba(0, 105, 100, 0.15)' : 'rgba(2, 132, 199, 0.15)',
-                              color: isHtkd ? 'var(--gf-primary)' : '#0284c7',
+                              backgroundColor: isHdld ? 'rgba(16, 185, 129, 0.15)' : isHtkd ? 'rgba(0, 105, 100, 0.15)' : 'rgba(2, 132, 199, 0.15)',
+                              color: isHdld ? '#059669' : isHtkd ? 'var(--gf-primary)' : '#0284c7',
                               fontWeight: 700
                             }}>
                               {c.contractType}
                             </span>
                           </div>
-                          <small style={{ color: 'var(--text-secondary)' }}>{c.territoryDescription}</small>
+                          <small style={{ color: 'var(--text-secondary)' }}>
+                            {isHdld ? (c.jobTitle || 'Kho vận & Bán hàng') : c.territoryDescription}
+                          </small>
                         </td>
                         <td>
                           <div>{formatDate(c.startDate)} → {formatDate(c.endDate)}</div>
-                          {c.probationMonths && (
+                          {isHdld ? (
+                            <small style={{ color: 'var(--text-muted)' }}>Thời hạn: {c.contractDuration || '02 năm'}</small>
+                          ) : c.probationMonths ? (
                             <small style={{ color: 'var(--text-muted)' }}>Thử việc: {c.probationMonths} tháng</small>
-                          )}
+                          ) : null}
                         </td>
                         <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                          <div>PCB: {formatVND(c.salary)}</div>
-                          {c.allowance > 0 && (
-                            <small style={{ display: 'block', color: 'var(--text-muted)' }}>
-                              PKT: {formatVND(c.allowance)}
-                            </small>
+                          {isHdld ? (
+                            <>
+                              <div>Lương CD: {formatVND(c.salary)}</div>
+                              <small style={{ display: 'block', color: 'var(--text-muted)' }}>
+                                Thưởng HS: {formatVND(c.performanceBonus || 1278630)}
+                              </small>
+                              <small style={{ display: 'block', color: '#059669', fontSize: '11px' }}>
+                                Ăn ca: {formatVND(c.mealAllowance || 730000)}
+                              </small>
+                            </>
+                          ) : (
+                            <>
+                              <div>PCB: {formatVND(c.salary)}</div>
+                              {c.allowance > 0 && (
+                                <small style={{ display: 'block', color: 'var(--text-muted)' }}>
+                                  PKT: {formatVND(c.allowance)}
+                                </small>
+                              )}
+                            </>
                           )}
                         </td>
                         <td>
@@ -363,13 +418,28 @@ export default function ContractsView() {
                         Các trường dữ liệu tự động thay thế:
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                        <code style={{ fontSize: '11px' }}>{`{{full_name}}`}</code>
-                        <code style={{ fontSize: '11px' }}>{`{{identity_number}}`}</code>
-                        <code style={{ fontSize: '11px' }}>{`{{salary}} (PCB)`}</code>
-                        <code style={{ fontSize: '11px' }}>{`{{allowance}} (PKT)`}</code>
-                        <code style={{ fontSize: '11px' }}>{`{{kpi_target}}`}</code>
-                        <code style={{ fontSize: '11px' }}>{`{{bonus_tiers_text}}`}</code>
-                        <code style={{ fontSize: '11px' }}>{`{{quarter_bonus_rate}}`}</code>
+                        {tpl.id === 'TPL-HDLD' ? (
+                          <>
+                            <code style={{ fontSize: '11px' }}>{`{{full_name}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{identity_number}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{base_salary}} (BHXH)`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{performance_bonus}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{meal_allowance}} (730k)`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{contract_duration}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{work_location}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{job_title}} & JD`}</code>
+                          </>
+                        ) : (
+                          <>
+                            <code style={{ fontSize: '11px' }}>{`{{full_name}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{identity_number}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{salary}} (PCB)`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{allowance}} (PKT)`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{kpi_target}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{bonus_tiers_text}}`}</code>
+                            <code style={{ fontSize: '11px' }}>{`{{quarter_bonus_rate}}`}</code>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -432,32 +502,71 @@ export default function ContractsView() {
                     </div>
                   )}
                 </div>
-                <div>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Phí dịch vụ cơ bản (PCB):</span>
-                  <div style={{ fontWeight: 700, color: 'var(--gf-primary)', fontSize: '16px' }}>
-                    {formatVND(selectedContract.salary)} / tháng
-                  </div>
-                  <small style={{ color: 'var(--text-muted)' }}>({numberToVietnameseWords(selectedContract.salary)})</small>
-                </div>
-                <div>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Phí hỗ trợ khai thác (PKT):</span>
-                  <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '16px' }}>
-                    {formatVND(selectedContract.allowance)} / tháng
-                  </div>
-                  <small style={{ color: 'var(--text-muted)' }}>({numberToVietnameseWords(selectedContract.allowance)})</small>
-                </div>
-                {selectedContract.kpiTargetRevenue && (
-                  <div>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Chỉ tiêu KPI Doanh Thu Tháng:</span>
-                    <div style={{ fontWeight: 600, color: '#b45309' }}>
-                      {formatVND(selectedContract.kpiTargetRevenue)} / tháng
+                {selectedContract.contractType === 'HDLD' || selectedContract.templateId === 'TPL-HDLD' ? (
+                  <>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Lương chức danh (BHXH):</span>
+                      <div style={{ fontWeight: 700, color: 'var(--gf-primary)', fontSize: '16px' }}>
+                        {formatVND(selectedContract.salary)} / tháng
+                      </div>
+                      <small style={{ color: 'var(--text-muted)' }}>({numberToVietnameseWords(selectedContract.salary)})</small>
                     </div>
-                  </div>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Thưởng hiệu suất CV:</span>
+                      <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '16px' }}>
+                        {formatVND(selectedContract.performanceBonus || 1278630)} / tháng
+                      </div>
+                      <small style={{ color: 'var(--text-muted)' }}>Theo đánh giá KPI hàng tháng</small>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Phụ cấp ăn ca cố định:</span>
+                      <div style={{ fontWeight: 700, color: '#059669', fontSize: '16px' }}>
+                        {formatVND(selectedContract.mealAllowance || 730000)} / tháng
+                      </div>
+                      <small style={{ color: '#059669' }}>Miễn thuế TNCN (TT 26/2016/TT-BLĐTBXH)</small>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Vị trí & Bộ phận JD:</span>
+                      <div style={{ fontWeight: 600 }}>{selectedContract.jobTitle || 'Nhân viên'}</div>
+                      <small style={{ color: 'var(--text-secondary)' }}>{selectedContract.department || 'Vận hành'}</small>
+                    </div>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Địa điểm & Thời giờ làm việc:</span>
+                      <div style={{ fontSize: '13px', marginTop: '2px' }}>
+                        📍 {selectedContract.workLocation || 'Kho Tân Phú, TP.HCM'} • ⏱️ {selectedContract.workHours || '48 giờ/tuần'}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Phí dịch vụ cơ bản (PCB):</span>
+                      <div style={{ fontWeight: 700, color: 'var(--gf-primary)', fontSize: '16px' }}>
+                        {formatVND(selectedContract.salary)} / tháng
+                      </div>
+                      <small style={{ color: 'var(--text-muted)' }}>({numberToVietnameseWords(selectedContract.salary)})</small>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Phí hỗ trợ khai thác (PKT):</span>
+                      <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '16px' }}>
+                        {formatVND(selectedContract.allowance)} / tháng
+                      </div>
+                      <small style={{ color: 'var(--text-muted)' }}>({numberToVietnameseWords(selectedContract.allowance)})</small>
+                    </div>
+                    {selectedContract.kpiTargetRevenue && (
+                      <div>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Chỉ tiêu KPI Doanh Thu Tháng:</span>
+                        <div style={{ fontWeight: 600, color: '#b45309' }}>
+                          {formatVND(selectedContract.kpiTargetRevenue)} / tháng
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Địa bàn phụ trách:</span>
+                      <div>{selectedContract.territoryDescription}</div>
+                    </div>
+                  </>
                 )}
-                <div>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Địa bàn phụ trách:</span>
-                  <div>{selectedContract.territoryDescription}</div>
-                </div>
               </div>
 
               <div style={{ marginBottom: '16px' }}>
@@ -693,7 +802,20 @@ export default function ContractsView() {
                       onChange={(e) => {
                         const val = e.target.value;
                         setTemplateId(val);
-                        if (val.includes('HTKD')) {
+                        if (val.includes('HDLD')) {
+                          setContractType('HDLD');
+                          setSalary('7491370');
+                          setPerformanceBonus('1278630');
+                          setMealAllowance('730000');
+                          setContractDuration('02 năm');
+                          setProbationPeriod('02 tháng (Hưởng 85% tổng lương chức danh)');
+                          setWorkLocation('Số 19/48 Nguyễn Cửu Đàm, P Tân Sơn Nhì, Q. Tân Phú, TP Hồ Chí Minh');
+                          setWorkHours('48 giờ/tuần (Thứ 2 đến Thứ 7: 8h00 - 17h00)');
+                          setJobTitle('Nhân viên Điều phối Kho vận & Hỗ trợ Kinh doanh');
+                          setDepartment('Phòng Quản lý Kho vận & Hỗ trợ Kinh doanh');
+                          setReportTo('Trưởng phòng Vận hành / Ban Giám đốc');
+                          setTerritoryDescription('Kho vận TP. Hồ Chí Minh & Hệ thống phân phối miền Nam');
+                        } else if (val.includes('HTKD')) {
                           setContractType('HTKD');
                           setSalary('8000000');
                           setAllowance('7000000');
@@ -710,7 +832,7 @@ export default function ContractsView() {
                     >
                       {contractTemplates.map(t => (
                         <option key={t.id} value={t.id}>
-                          {t.name} {t.id === 'TPL-HTKD' ? '⭐' : ''}
+                          {t.name} {t.id === 'TPL-HTKD' || t.id === 'TPL-HDLD' ? '⭐' : ''}
                         </option>
                       ))}
                     </select>
@@ -749,102 +871,269 @@ export default function ContractsView() {
                   </div>
                 )}
 
-                {/* Mức thù lao & Phụ cấp */}
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">
-                      {templateId === 'TPL-HTKD' ? 'Phí Dịch Vụ Cơ Bản - PCB (VNĐ/tháng) *' : 'Mức Lương / Thù Lao Cơ Bản *'}
-                    </label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      required
-                      placeholder="VD: 8000000"
-                      value={salary}
-                      onChange={(e) => setSalary(e.target.value)}
-                    />
-                    {salary > 0 && (
-                      <small style={{ color: 'var(--text-muted)' }}>
-                        Bằng chữ: {numberToVietnameseWords(Number(salary))}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">
-                      {templateId === 'TPL-HTKD' ? 'Phí Hỗ Trợ Khai Thác - PKT (VNĐ/tháng) *' : 'Phụ Cấp Trách Nhiệm (VNĐ/tháng)'}
-                    </label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      placeholder="VD: 7000000"
-                      value={allowance}
-                      onChange={(e) => setAllowance(e.target.value)}
-                    />
-                    {allowance > 0 && (
-                      <small style={{ color: 'var(--text-muted)' }}>
-                        Bằng chữ: {numberToVietnameseWords(Number(allowance))}
-                      </small>
-                    )}
-                  </div>
-                </div>
-
-                {/* HTKD specific fields: KPI, Thời hạn thử thách, Thưởng quý/năm */}
-                {templateId === 'TPL-HTKD' && (
+                {/* Phân nhánh Form: HĐLĐ (3 Tầng Thu Nhập & JD) vs HTKD/CTV/STAFF */}
+                {templateId === 'TPL-HDLD' ? (
                   <>
+                    <div style={{
+                      background: 'rgba(16, 185, 129, 0.05)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      padding: '12px 14px',
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: '16px'
+                    }}>
+                      <div style={{ fontWeight: 700, color: '#059669', marginBottom: '4px', fontSize: '13px' }}>
+                        ⚖️ Cơ Chế 3 Tầng Thu Nhập Hợp Đồng Lao Động Chuẩn (Bộ luật Lao động 2019)
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        Lương chức danh đóng BHXH bắt buộc + Thưởng đánh giá hoàn thành công việc + Phụ cấp ăn ca cố định (miễn thuế TNCN theo TT 26/2016/TT-BLĐTBXH). Kèm Bảng mô tả công việc (JD) Phụ lục Trang 2.
+                      </div>
+                    </div>
+
                     <div className="form-row">
                       <div className="form-group">
-                        <label className="form-label">Chỉ Tiêu KPI Doanh Thu Tối Thiểu (VNĐ/tháng) *</label>
+                        <label className="form-label">Lương Chức Danh / Cơ Bản (Đóng BHXH) *</label>
                         <input
                           type="number"
                           className="form-input"
                           required
-                          value={kpiTargetRevenue}
-                          onChange={(e) => setKpiTargetRevenue(e.target.value)}
+                          placeholder="VD: 7491370"
+                          value={salary}
+                          onChange={(e) => setSalary(e.target.value)}
                         />
-                        {kpiTargetRevenue > 0 && (
+                        {salary > 0 && (
                           <small style={{ color: 'var(--text-muted)' }}>
-                            Bằng chữ: {numberToVietnameseWords(Number(kpiTargetRevenue))}
+                            Bằng chữ: {numberToVietnameseWords(Number(salary))}
                           </small>
                         )}
                       </div>
 
                       <div className="form-group">
-                        <label className="form-label">Thời Gian Thử Thách Năng Lực (Tháng)</label>
+                        <label className="form-label">Thưởng Hiệu Suất / Đánh Giá Hoàn Thành CV *</label>
                         <input
                           type="number"
                           className="form-input"
-                          min="1"
-                          max="12"
-                          value={probationMonths}
-                          onChange={(e) => setProbationMonths(e.target.value)}
+                          placeholder="VD: 1278630"
+                          value={performanceBonus}
+                          onChange={(e) => setPerformanceBonus(e.target.value)}
+                        />
+                        {performanceBonus > 0 && (
+                          <small style={{ color: 'var(--text-muted)' }}>
+                            Bằng chữ: {numberToVietnameseWords(Number(performanceBonus))}
+                          </small>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">Phụ Cấp Ăn Ca Cố Định (VNĐ/tháng) *</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          placeholder="730000"
+                          value={mealAllowance}
+                          onChange={(e) => setMealAllowance(e.target.value)}
+                        />
+                        <small style={{ color: '#059669', fontSize: '11px' }}>
+                          ✓ Cố định 730.000đ/tháng miễn thuế TNCN (TT 26/2016/TT-BLĐTBXH)
+                        </small>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Tổng Thu Nhập Hàng Tháng Dự Kiến</label>
+                        <div style={{
+                          padding: '8px 12px',
+                          background: 'var(--bg-subtle)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 700,
+                          fontSize: '15px',
+                          color: '#059669'
+                        }}>
+                          {formatVND((Number(salary) || 0) + (Number(performanceBonus) || 0) + (Number(mealAllowance) || 0))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">Thời Hạn Hợp Đồng Lao Động *</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="VD: 02 năm"
+                          value={contractDuration}
+                          onChange={(e) => setContractDuration(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Thời Gian & Mức Lương Thử Việc</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="VD: 02 tháng (Hưởng 85% tổng lương chức danh)"
+                          value={probationPeriod}
+                          onChange={(e) => setProbationPeriod(e.target.value)}
                         />
                       </div>
                     </div>
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label className="form-label">Tỷ Lệ Thưởng Quý (%)</label>
+                        <label className="form-label">Chức Danh Chuyên Môn (Theo JD Trang 2) *</label>
                         <input
-                          type="number"
-                          step="0.1"
+                          type="text"
                           className="form-input"
-                          value={quarterBonusRate}
-                          onChange={(e) => setQuarterBonusRate(e.target.value)}
+                          required
+                          value={jobTitle}
+                          onChange={(e) => setJobTitle(e.target.value)}
                         />
                       </div>
 
                       <div className="form-group">
-                        <label className="form-label">Tỷ Lệ Thưởng Năm (%)</label>
+                        <label className="form-label">Phòng Ban / Bộ Phận</label>
                         <input
-                          type="number"
-                          step="0.1"
+                          type="text"
                           className="form-input"
-                          value={yearBonusRate}
-                          onChange={(e) => setYearBonusRate(e.target.value)}
+                          value={department}
+                          onChange={(e) => setDepartment(e.target.value)}
                         />
                       </div>
                     </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">Cấp Quản Lý Trực Tiếp Báo Cáo</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={reportTo}
+                          onChange={(e) => setReportTo(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Thời Giờ Làm Việc Tiêu Chuẩn</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={workHours}
+                          onChange={(e) => setWorkHours(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '16px' }}>
+                      <label className="form-label">Địa Điểm Làm Việc Thực Tế</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={workLocation}
+                        onChange={(e) => setWorkLocation(e.target.value)}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Mức thù lao & Phụ cấp cho HTKD / CTV / STAFF */}
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">
+                          {templateId === 'TPL-HTKD' ? 'Phí Dịch Vụ Cơ Bản - PCB (VNĐ/tháng) *' : 'Mức Lương / Thù Lao Cơ Bản *'}
+                        </label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          required
+                          placeholder="VD: 8000000"
+                          value={salary}
+                          onChange={(e) => setSalary(e.target.value)}
+                        />
+                        {salary > 0 && (
+                          <small style={{ color: 'var(--text-muted)' }}>
+                            Bằng chữ: {numberToVietnameseWords(Number(salary))}
+                          </small>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">
+                          {templateId === 'TPL-HTKD' ? 'Phí Hỗ Trợ Khai Thác - PKT (VNĐ/tháng) *' : 'Phụ Cấp Trách Nhiệm (VNĐ/tháng)'}
+                        </label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          placeholder="VD: 7000000"
+                          value={allowance}
+                          onChange={(e) => setAllowance(e.target.value)}
+                        />
+                        {allowance > 0 && (
+                          <small style={{ color: 'var(--text-muted)' }}>
+                            Bằng chữ: {numberToVietnameseWords(Number(allowance))}
+                          </small>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* HTKD specific fields: KPI, Thời hạn thử thách, Thưởng quý/năm */}
+                    {templateId === 'TPL-HTKD' && (
+                      <>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label className="form-label">Chỉ Tiêu KPI Doanh Thu Tối Thiểu (VNĐ/tháng) *</label>
+                            <input
+                              type="number"
+                              className="form-input"
+                              required
+                              value={kpiTargetRevenue}
+                              onChange={(e) => setKpiTargetRevenue(e.target.value)}
+                            />
+                            {kpiTargetRevenue > 0 && (
+                              <small style={{ color: 'var(--text-muted)' }}>
+                                Bằng chữ: {numberToVietnameseWords(Number(kpiTargetRevenue))}
+                              </small>
+                            )}
+                          </div>
+
+                          <div className="form-group">
+                            <label className="form-label">Thời Gian Thử Thách Năng Lực (Tháng)</label>
+                            <input
+                              type="number"
+                              className="form-input"
+                              min="1"
+                              max="12"
+                              value={probationMonths}
+                              onChange={(e) => setProbationMonths(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label className="form-label">Tỷ Lệ Thưởng Quý (%)</label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              className="form-input"
+                              value={quarterBonusRate}
+                              onChange={(e) => setQuarterBonusRate(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label className="form-label">Tỷ Lệ Thưởng Năm (%)</label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              className="form-input"
+                              value={yearBonusRate}
+                              onChange={(e) => setYearBonusRate(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
 

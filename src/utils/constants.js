@@ -395,6 +395,115 @@ PHỤ LỤC 01: CƠ CHẾ CHI TRẢ THÙ LAO VÀ THƯỞNG KINH DOANH
              LÊ TRÍ NAM                                          {{full_name}}`
   },
   {
+    id: 'TPL-HDLD',
+    name: 'Hợp Đồng Lao Động Chuẩn (Genki Fami)',
+    description: 'Mẫu chuẩn trích xuất từ hồ sơ HĐLĐ thực tế Genki Fami: Lương chức danh BHXH + Thưởng hiệu suất + Phụ cấp ăn ca 730k + Cam kết bảo mật 24 tháng + Bảng mô tả công việc (JD).',
+    category: 'Hợp Đồng Lao Động',
+    active: true,
+    templateContent: `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+----------o0o----------
+
+HỢP ĐỒNG LAO ĐỘNG
+Số: {{contract_code}}
+(Căn cứ Bộ luật Lao động số 45/2019/QH14 và Thông tư số 26/2016/TT-BLĐTBXH)
+
+Chúng tôi, một bên là: Ông TRẦN HẢI BẰNG
+Chức vụ: Tổng Giám đốc
+Đại diện cho: Công ty CP Genki Fami Việt Nam
+Địa chỉ: Số 107 ngõ 192 Lê Trọng Tấn, tổ 1, P. Định Công, Q. Hoàng Mai, TP. Hà Nội.
+
+Và một bên là: {{gender_title}} {{full_name}}
+Sinh ngày: {{date_of_birth}}
+Nghề nghiệp: {{position}}
+Địa chỉ thường trú: {{address}}
+CCCD số: {{identity_number}} do {{identity_place}} cấp ngày {{identity_date}}
+Điện thoại: {{phone}}   Email: {{email}}
+
+Thoả thuận ký kết Hợp đồng lao động và cam kết làm đúng những điều khoản sau đây:
+
+Điều 1: {{gender_title}} {{full_name}} làm việc theo loại Hợp đồng lao động thời hạn {{contract_duration}}.
+- Bắt đầu từ ngày: {{start_date}} đến hết ngày: {{end_date}}.
+- Thời gian thử việc: {{probation_period}} (Hưởng 85% lương).
+- Tại địa điểm: {{work_location}}.
+- Chức danh chuyên môn: {{job_title}}.
+- Công việc phải làm: Theo bảng mô tả công việc đính kèm tại Trang 2.
+
+Điều 2: Chế độ làm việc:
+- Thời giờ làm việc: {{work_hours}}.
+- Được cấp phát những dụng cụ: Cần thiết theo yêu cầu công việc.
+- Điều kiện an toàn và vệ sinh lao động tại nơi làm việc theo quy định hiện hành của Nhà nước.
+
+Điều 3: Nghĩa vụ và các quyền lợi của người lao động:
+1. Quyền lợi:
+- Phương tiện đi lại làm việc: Cá nhân tự túc;
+- Lương chức danh: {{base_salary}} VNĐ/tháng (Bằng chữ: {{base_salary_in_words}})
+- Thưởng hiệu suất: {{performance_bonus}} VNĐ/tháng (Theo chính sách công ty)
+- Phụ cấp ăn ca: {{meal_allowance}} VNĐ/tháng (Mức chuẩn 730.000 VNĐ theo Thông tư 26/2016/TT-BLĐTBXH miễn thuế TNCN)
+Các phụ cấp, chi phí và thưởng đã bao gồm Thuế thu nhập cá nhân do người lao động chi trả.
+- Hình thức trả lương: Trả 01 lần vào ngày 05 hàng tháng hoặc theo quy định công ty từng thời kỳ.
+- Các phụ cấp, chi phí và thưởng gộp khác: Theo chính sách của Công ty.
+- Tiền thưởng: Theo quy định của Công ty.
+- Chế độ nâng lương: Theo chính sách của Công ty.
+- Bảo hiểm xã hội, Bảo hiểm y tế, Bảo hiểm thất nghiệp: Theo quy định của pháp luật hiện hành.
+- Nghỉ hàng tuần: {{weekly_rest}}.
+- Chế độ đào tạo: Theo quy định của Công ty và yêu cầu công việc. Trong trường hợp NV được cử đi đào tạo thì NV phải hoàn thành khoá học đúng thời hạn, phải cam kết sẽ phục vụ lâu dài cho Công ty sau khi kết thúc khoá học và được hưởng nguyên lương; các quyền lợi khác như người đi làm. Nếu sau khi kết thúc khóa đào tạo mà nhân viên không tiếp tục hợp tác với Công ty thì nhân viên phải hoàn trả lại 100% phí đào tạo và các khoản chế độ đã được nhận trong thời gian đào tạo.
+- Những thoả thuận khác:
++ Trong vòng 15 ngày (làm việc) kể từ ngày ký kết hợp đồng này, vì bất cứ lý do gì mà người lao động không tiếp tục cộng tác với công ty (kể cả trong trường hợp công ty thông báo chấm dứt hợp đồng lao động trước thời hạn) thì người lao động cam kết sẽ không yêu cầu công ty phải thanh toán bất cứ chế độ và quyền lợi nào của người lao động trong thời gian nêu trên.
++ Trong trường hợp 1 trong 2 bên muốn chấm dứt hợp đồng trước thời hạn thì phải báo trước cho bên còn lại trước 45 ngày kể từ khi có thông báo.
+
+2. Nghĩa vụ:
+- Hoàn thành những nội dung đã cam kết và những công việc trong Hợp đồng;
+- Chấp hành nội quy lao động, an toàn lao động, kỷ luật lao động;
+- Tuyệt đối không sử dụng khách hàng của công ty để trục lợi cá nhân;
+- Trong quá trình làm việc cho Công ty, người lao động không được phép kinh doanh hoặc làm bất cứ công việc gì mâu thuẫn với quyền lợi và lợi ích của Công ty;
+- Người lao động phải chấp hành sự phân công, điều động thực hiện những công việc không trái với pháp luật từ người sử dụng lao động;
+- Trong thời gian hiệu lực hợp đồng và trong vòng 24 tháng kể từ khi nghỉ việc tại Công ty nhân viên không được phép: Cung cấp thông tin, tiết lộ bí mật kinh doanh của công ty ra ngoài, không được phép hợp tác, sản xuất, kinh doanh, làm đại lý sử dụng, tiết lộ thông tin về khách hàng, mặt hàng, sản phẩm tương tự của Công ty cho bất kỳ tổ chức cá nhân nào nhằm phục vụ công việc riêng cho mình mà chưa được sự đồng ý bằng văn bản từ phía công ty. Trường hợp bị phát hiện – Cá nhân đó sẽ bị khởi tố trước pháp luật.
+
+Điều 4: Nghĩa vụ và quyền hạn của người sử dụng lao động:
+1. Nghĩa vụ:
+- Bảo đảm việc làm và thực hiện đầy đủ những điều khoản trong hợp đồng;
+- Thanh toán đầy đủ, đúng thời hạn các chế độ và quyền lợi cho người lao động theo hợp đồng này;
+- Bảo quản văn bằng, chứng chỉ gốc (nếu có) cho nhân viên trong thời gian hiệu lực hợp đồng;
+- Hoàn trả lại văn bằng, chứng chỉ gốc (nếu có) cho nhân viên sau khi nhân viên đã hoàn thành các nghĩa vụ đã cam kết tại hợp đồng lao động này.
+2. Quyền hạn:
+- Điều hành người lao động hoàn thành công việc theo Hợp đồng (bố trí, điều chuyển, tạm ngừng việc);
+- Tạm hoãn, chấm dứt hợp đồng lao động, kỷ luật người lao động theo quy định của pháp luật, và nội quy lao động của Công ty.
+
+Điều 5: Điều khoản thi hành:
+- Những vấn đề về lao động không ghi trong hợp đồng lao động này thì áp dụng theo quy định của nội quy lao động và pháp luật lao động;
+- Hợp đồng lao động này được lập thành 02 bản có giá trị như nhau, mỗi bên giữ 01 bản và có hiệu lực kể từ ngày {{start_date}}.
+- Hợp đồng làm tại: Số 107 ngõ 192 Lê Trọng Tấn, tổ 1, P. Định Công, Q. Hoàng Mai, TP. Hà Nội.
+
+          ĐẠI DIỆN NGƯỜI LAO ĐỘNG                              ĐẠI DIỆN NGƯỜI SỬ DỤNG LAO ĐỘNG
+           (Ký và ghi rõ họ tên)                               (Ký, ghi rõ họ tên và đóng dấu)
+
+
+
+               {{full_name}}                                            TRẦN HẢI BẰNG
+
+----------------------------------------------------------------------------------------------------
+TRANG 2: BẢNG MÔ TẢ CÔNG VIỆC (JOB DESCRIPTION)
+(Đính kèm theo Hợp đồng lao động số: {{contract_code}})
+
+Chức vụ: {{job_title}}
+Bộ phận: {{department}}
+Báo cáo cho: {{report_to}}
+
+Trách nhiệm chính & Nhiệm vụ cụ thể:
+{{jd_tasks}}
+
+Yêu cầu năng lực:
+{{jd_requirements}}
+
+Cam đoan nhận việc:
+"Tôi đã đọc và được trao đổi với quản lý trực tiếp và tôi hoàn toàn hiểu mô tả về vị trí công việc của tôi."
+
+Tên nhân viên: {{full_name}}
+Ngày nhận việc: {{start_date}}
+Chữ ký: .......................................`
+  },
+  {
     id: 'TPL-CTV',
     name: 'Hợp Đồng Hợp Tác Bán Hàng (CTV)',
     description: 'Áp dụng cho cộng tác viên phát triển mạng lưới nhà thuốc',
@@ -460,6 +569,42 @@ Người lao động: {{full_name}} (CCCD: {{identity_number}})
 ];
 
 export const INITIAL_CONTRACTS = [
+  {
+    id: 'CTR-2025-HDLD-001',
+    contractCode: '100325/HĐLĐ-GENKI',
+    personId: 'P-002',
+    contractType: 'HDLD',
+    templateId: 'TPL-HDLD',
+    partyARepresentative: 'Ông Trần Hải Bằng',
+    partyAPosition: 'Tổng Giám đốc',
+    partyACompany: 'CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM',
+    startDate: '2025-03-10',
+    endDate: '2027-03-09',
+    salary: 7491370,
+    performanceBonus: 1278630,
+    allowance: 1278630,
+    mealAllowance: 730000,
+    travelAllowance: 0,
+    contractDuration: '02 năm',
+    probationPeriod: 'Từ ngày 10/03/2025 đến 01/05/2025 (Hưởng 85% lương)',
+    workLocation: 'Số 19/48 Nguyễn Cửu Đàm, P Tân Sơn Nhì, Q. Tân Phú, TP Hồ Chí Minh',
+    workHours: '48 giờ/tuần',
+    weeklyRest: '1,5 ngày (Thứ 7, Chủ Nhật)',
+    jobTitle: 'Nhân viên Kho kiêm hỗ trợ kinh doanh',
+    department: 'Kho vận & Vận hành',
+    reportTo: 'Phụ trách Kho vận & Ban Giám Đốc',
+    additionalTerms: 'Cam kết bảo mật thông tin và chống cạnh tranh trong vòng 24 tháng sau khi nghỉ việc.',
+    jdTasks: [
+      { id: 1, group: '1. Điều phối kho vận & Hàng hóa', desc: 'Kiểm đếm, đóng gói, xuất nhập tồn hàng hóa kho Tân Phú, kiểm soát date sản phẩm Genki Fami, lập biên bản giao nhận.' },
+      { id: 2, group: '2. Hỗ trợ kinh doanh & AMIS CRM', desc: 'Tiếp nhận đơn hàng, tạo đề nghị xuất kho trên hệ thống MISA AMIS CRM, phối hợp đơn vị vận chuyển giao hàng đúng hẹn.' },
+      { id: 3, group: '3. Công việc khác', desc: 'Báo cáo tồn kho định kỳ hàng tuần/tháng cho Quản lý kho và Ban Giám đốc; tham gia kiểm kê thực tế theo quý.' }
+    ],
+    status: 'ACTIVE',
+    createdBy: 'P-003',
+    approvedBy: 'P-005',
+    approvedAt: '2025-03-08T09:00:00.000Z',
+    driveFolderUrl: 'https://drive.google.com/drive/folders/genki-contract-hdld-001'
+  },
   {
     id: 'CTR-2026-HTKD-001',
     contractCode: '20260601_HĐHT - Nguyễn Văn An_HN',

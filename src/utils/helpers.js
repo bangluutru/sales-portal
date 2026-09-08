@@ -222,7 +222,22 @@ export function compileContractTemplate(templateContent, data = {}) {
     '{{below_target_policy}}': data.belowTargetPolicy || 'Trường hợp đạt dưới 50% chỉ tiêu Doanh thu tối thiểu: Thu nhập nhận được = PCB.',
     '{{bonus_table_text}}': data.bonusTableText || defaultBonusTableText,
     '{{quarterly_bonus}}': data.quarterlyBonusText || `${quarterBonusRate}% Tổng doanh số 03 tháng khi đạt từ 500.000.000 VNĐ trở lên.`,
-    '{{yearly_bonus}}': data.yearlyBonusText || `${yearBonusRate}% Tổng doanh thu tính từ thời điểm công tác đến hết năm (áp dụng khi công tác trên 06 tháng).`
+    '{{yearly_bonus}}': data.yearlyBonusText || `${yearBonusRate}% Tổng doanh thu tính từ thời điểm công tác đến hết năm (áp dụng khi công tác trên 06 tháng).`,
+
+    // HDLD standard labor contract placeholders
+    '{{base_salary}}': formatVND(data.baseSalary || data.salary || 7491370),
+    '{{base_salary_words}}': numberToVietnameseWords(Number(data.baseSalary || data.salary || 7491370)),
+    '{{performance_bonus}}': formatVND(data.performanceBonus !== undefined ? data.performanceBonus : 1278630),
+    '{{performance_bonus_words}}': numberToVietnameseWords(Number(data.performanceBonus !== undefined ? data.performanceBonus : 1278630)),
+    '{{meal_allowance}}': formatVND(data.mealAllowance !== undefined ? data.mealAllowance : 730000),
+    '{{meal_allowance_words}}': numberToVietnameseWords(Number(data.mealAllowance !== undefined ? data.mealAllowance : 730000)),
+    '{{probation_period}}': data.probationPeriod || '02 tháng (Hưởng 85% tổng lương chức danh)',
+    '{{work_location}}': data.workLocation || 'Số 19/48 Nguyễn Cửu Đàm, P Tân Sơn Nhì, Q. Tân Phú, TP Hồ Chí Minh',
+    '{{work_hours}}': data.workHours || '48 giờ/tuần (Thứ 2 đến Thứ 7: 8h00 - 17h00)',
+    '{{job_title}}': data.jobTitle || 'Nhân viên Điều phối Kho vận & Hỗ trợ Kinh doanh',
+    '{{department}}': data.department || 'Phòng Quản lý Kho vận & Hỗ trợ Kinh doanh',
+    '{{report_to}}': data.reportTo || 'Trưởng phòng Vận hành / Ban Giám đốc',
+    '{{direct_supervisor}}': data.directSupervisor || data.reportTo || 'Trưởng phòng Vận hành'
   };
 
   for (const [placeholder, val] of Object.entries(replacements)) {
