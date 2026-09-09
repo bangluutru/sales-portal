@@ -8,7 +8,7 @@
  * Đảm bảo 100% không bị ảnh hưởng bởi CSS của Modal / Single Page App
  * Chuẩn khổ giấy A4, lề chuẩn hành chính Việt Nam, ngắt trang hoàn hảo.
  */
-export function printContractViaIframe(contentHtml, documentTitle = 'Hợp Đồng Kinh Doanh') {
+export function printContractViaIframe(contentHtml, documentTitle = 'Hợp Đồng Kinh Doanh', orientation = 'portrait') {
   return new Promise((resolve) => {
     // 1. Tạo iframe ẩn
     const iframe = document.createElement('iframe');
@@ -24,6 +24,7 @@ export function printContractViaIframe(contentHtml, documentTitle = 'Hợp Đồ
     // 2. Viết tài liệu độc lập với CSS paged media chuẩn A4
     const doc = iframe.contentWindow.document;
     doc.open();
+    const pageMargin = orientation === 'landscape' ? '15mm 15mm 15mm 20mm' : '20mm 15mm 20mm 25mm';
     doc.write(`
       <!DOCTYPE html>
       <html lang="vi">
@@ -32,8 +33,8 @@ export function printContractViaIframe(contentHtml, documentTitle = 'Hợp Đồ
           <title>${documentTitle}</title>
           <style>
             @page {
-              size: A4 portrait;
-              margin: 20mm 15mm 20mm 25mm; /* Chuẩn văn bản: Trên 20mm, Dưới 20mm, Phải 15mm, Trái 25mm đóng gáy */
+              size: A4 ${orientation};
+              margin: ${pageMargin}; /* Khổ dọc: Trái 25mm đóng gáy; Khổ ngang: Cân đối 15-20mm */
             }
             * {
               box-sizing: border-box;
@@ -198,12 +199,12 @@ export function printContractViaIframe(contentHtml, documentTitle = 'Hợp Đồ
  * Tải trực tiếp file .pdf về máy client dùng html2pdf.js
  * Hoạt động độc lập không cần mở hộp thoại in của trình duyệt
  */
-export async function downloadContractAsPdf(element, filename = 'hop_dong.pdf') {
+export async function downloadContractAsPdf(element, filename = 'hop_dong.pdf', orientation = 'portrait') {
   const html2pdf = (await import('html2pdf.js')).default;
   const cleanFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
 
   const opt = {
-    margin: [15, 12, 15, 20], // top 15, right 12, bottom 15, left 20 mm
+    margin: orientation === 'landscape' ? [15, 15, 15, 15] : [15, 12, 15, 20], // Khổ ngang cân đối, khổ dọc lề trái 20mm
     filename: cleanFilename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
@@ -215,7 +216,7 @@ export async function downloadContractAsPdf(element, filename = 'hop_dong.pdf') 
     jsPDF: {
       unit: 'mm',
       format: 'a4',
-      orientation: 'portrait'
+      orientation: orientation
     },
     pagebreak: {
       mode: ['css', 'legacy'],

@@ -25,6 +25,32 @@
   text-align: justify;
   margin-bottom: 24px;
   box-sizing: border-box;
+  transition: max-width 0.25s ease, min-height 0.25s ease;
+}
+
+/* Khổ Ngang (Landscape A4: 297mm x 210mm) */
+.contract-paper.landscape {
+  max-width: 297mm;
+  min-height: 210mm;
+  padding: 20mm 20mm 20mm 25mm;
+}
+
+/* Travel Form Styling */
+.travel-form-container {
+  width: 100%;
+  color: #000000;
+}
+
+.travel-form-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.travel-form-container th,
+.travel-form-container td {
+  border: 1px solid #444444;
 }
 
 .contract-paper-appendix {

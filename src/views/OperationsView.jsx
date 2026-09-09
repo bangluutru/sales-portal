@@ -6,6 +6,9 @@ import StatusBadge from '../components/StatusBadge.jsx';
 import DriveLinkButton from '../components/DriveLinkButton.jsx';
 import WorkflowTimeline from '../components/WorkflowTimeline.jsx';
 import { IconPlus, IconClose, IconExternal } from '../components/Icons.jsx';
+import { TRAVEL_FORM_TEMPLATES, TRAVEL_FORM_TYPES } from '../utils/travelFormsConstants.js';
+import TravelFormMiniDocEditor from '../components/TravelFormMiniDocEditor.jsx';
+import { exportTravelFormToDocx } from '../utils/travelDocxGenerator.js';
 
 export default function OperationsView() {
   const {
@@ -20,6 +23,8 @@ export default function OperationsView() {
     updateRequestAction
   } = useApp();
 
+  const [mainTab, setMainTab] = useState('WORKFLOW'); // 'WORKFLOW' | 'TRAVEL_FORMS'
+  const [activeTravelForm, setActiveTravelForm] = useState(null); // { template, data }
   const [scopeTab, setScopeTab] = useState('MY'); // 'MY' | 'TEAM' | 'ALL'
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -73,6 +78,65 @@ export default function OperationsView() {
     (selectedRequest.status === 'ACCOUNTING_REVIEW' || selectedRequest.status === 'READY_FOR_PAYMENT' || 
      (selectedRequest.requestType === 'ADVANCE' && selectedRequest.status === 'DIRECTOR_REVIEW'));
 
+  // Ánh xạ dữ liệu từ Đề Nghị sang Biểu mẫu tương ứng
+  const mapRequestToFormData = (request, templateId) => {
+    const requester = people.find(p => p.id === request.requesterId) || currentPerson;
+    const tpl = TRAVEL_FORM_TEMPLATES.find(t => t.id === templateId) || TRAVEL_FORM_TEMPLATES[0];
+    const def = { ...tpl.defaultData };
+
+    const baseData = {
+      ...def,
+      requesterName: requester.fullName || def.requesterName,
+      position: requester.position || def.position,
+      department: requester.department || def.department || 'Phòng Kinh Doanh',
+      docCode: request.requestCode || def.docCode,
+      docDate: request.createdAt ? request.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      purpose: request.title || request.payload?.purpose || def.purpose
+    };
+
+    if (request.requestType === 'BUSINESS_TRIP') {
+      return {
+        ...baseData,
+        destination: request.payload?.destination || def.destination,
+        startDate: request.payload?.startDate || def.startDate,
+        endDate: request.payload?.endDate || def.endDate,
+        officerName: requester.fullName || def.officerName
+      };
+    }
+
+    if (request.requestType === 'ADVANCE') {
+      return {
+        ...baseData,
+        requestCode: request.requestCode,
+        items: [
+          { stt: 1, title: 'Tạm ứng theo đề nghị: ' + (request.title || 'Công tác phí'), amount: Number(request.amount || 5000000), note: 'Theo phê duyệt trên hệ thống' }
+        ]
+      };
+    }
+
+    if (request.requestType === 'SETTLEMENT') {
+      return {
+        ...baseData,
+        advanceThisPeriod: Number(request.payload?.advanceAmount || request.amount || 5000000),
+        actualExpenses: [
+          { stt: 1, item: 'Tổng chi phí thực tế theo hóa đơn đối soát (' + (request.title || 'Hoàn ứng') + ')', amount: Number(request.payload?.actualAmount || request.amount || 4800000), voucherCode: 'Kèm bảng kê chứng từ' }
+        ]
+      };
+    }
+
+    if (request.requestType === 'PAYMENT') {
+      return {
+        ...baseData,
+        requestCode: request.requestCode,
+        expenseRows: [
+          { stt: 1, date: formatDate(request.createdAt), voucherNo: 'HD-001', description: request.title || def.purpose, supplier: selectedCustomer?.name || 'Đối tác cung ứng', amount: Number(request.amount || 2000000), note: 'Hóa đơn VAT' }
+        ]
+      };
+    }
+
+    return baseData;
+  };
+
   return (
     <div className="page-container">
       {/* Quick Actions Header */}
@@ -110,8 +174,32 @@ export default function OperationsView() {
         </div>
       </div>
 
-      {/* Bộ lọc Scope (My / Team / All) & Search */}
-      <div className="card">
+      {/* Main Navigation Tabs: Workflow vs Travel Forms */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid var(--border-color)', paddingBottom: '10px', flexWrap: 'wrap' }}>
+        <button
+          className={`btn ${mainTab === 'WORKFLOW' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setMainTab('WORKFLOW')}
+          style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <span>📋 Quản Lý Đề Nghị & Phê Duyệt ({filteredRequests.length})</span>
+        </button>
+        <button
+          className={`btn ${mainTab === 'TRAVEL_FORMS' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setMainTab('TRAVEL_FORMS')}
+          style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <span>📑 Kho Biểu Mẫu Công Tác (Nghị Định 30)</span>
+          <span className="badge badge-accent" style={{ fontSize: '11px', padding: '2px 7px' }}>
+            6 Mẫu Ngang & Dọc
+          </span>
+        </button>
+      </div>
+
+      {/* TAB 1: WORKFLOW VIEW */}
+      {mainTab === 'WORKFLOW' && (
+        <>
+          {/* Bộ lọc Scope (My / Team / All) & Search */}
+          <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
           {/* Tabs Scope */}
           <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-subtle)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
@@ -240,12 +328,31 @@ export default function OperationsView() {
                         <StatusBadge status={r.status} />
                       </td>
                       <td>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => setSelectedRequestId(r.id)}
-                        >
-                          Chi Tiết
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => setSelectedRequestId(r.id)}
+                          >
+                            Chi Tiết
+                          </button>
+                          {['BUSINESS_TRIP', 'ADVANCE', 'SETTLEMENT', 'PAYMENT'].includes(r.requestType) && (
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              style={{ padding: '3px 8px', fontSize: '11.5px', color: 'var(--gf-primary)', borderColor: 'var(--gf-primary)' }}
+                              title="Mở biểu mẫu chuẩn Nghị định 30 tương ứng"
+                              onClick={() => {
+                                let tplId = TRAVEL_FORM_TYPES.FORM_CONG_TAC;
+                                if (r.requestType === 'ADVANCE') tplId = TRAVEL_FORM_TYPES.FORM_TAM_UNG;
+                                else if (r.requestType === 'SETTLEMENT') tplId = TRAVEL_FORM_TYPES.FORM_THANH_TOAN_TAM_UNG;
+                                else if (r.requestType === 'PAYMENT') tplId = TRAVEL_FORM_TYPES.FORM_DE_NGHI_THANH_TOAN;
+                                const tpl = TRAVEL_FORM_TEMPLATES.find(t => t.id === tplId);
+                                setActiveTravelForm({ template: tpl, data: mapRequestToFormData(r, tpl.id) });
+                              }}
+                            >
+                              📄 Mẫu NĐ 30
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -255,6 +362,91 @@ export default function OperationsView() {
           </div>
         )}
       </div>
+    </>
+  )}
+
+  {/* TAB 2: TRAVEL FORMS HUB (NGHỊ ĐỊNH 30) */}
+  {mainTab === 'TRAVEL_FORMS' && (
+    <div>
+      <div className="card" style={{ marginBottom: '20px', background: 'linear-gradient(135deg, rgba(0, 105, 100, 0.08) 0%, rgba(81, 191, 157, 0.05) 100%)', border: '1px solid rgba(0, 105, 100, 0.25)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span style={{ fontSize: '24px' }}>📑</span>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--gf-ink)' }}>
+                Kho Biểu Mẫu Công Tác & Tác Nghiệp (Quy Chuẩn Nghị Định 30/2020/NĐ-CP)
+              </h3>
+            </div>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '900px', lineHeight: 1.5 }}>
+              Tập hợp 6 biểu mẫu văn bản hành chính & chứng từ kế toán chuẩn hóa từ thực tế vận hành Genki Fami. Tự động dàn trang theo <strong>Khổ Dọc (Portrait)</strong> hoặc <strong>Khổ Ngang (Landscape)</strong> tùy độ rộng bảng biểu, hỗ trợ xem trực quan WYSIWYG, tải file Word (.docx) và in/xuất PDF chuẩn vector.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <span className="badge badge-accent" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 600 }}>
+              ✓ 6 Mẫu Chuẩn Nghị Định 30
+            </span>
+            <span className="badge badge-primary" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 600 }}>
+              ✓ Tự Động Ngang / Dọc
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Grid 6 Form Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '18px' }}>
+        {TRAVEL_FORM_TEMPLATES.map(tpl => {
+          const isLandscape = tpl.defaultOrientation === 'LANDSCAPE';
+          return (
+            <div key={tpl.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border-color)', padding: '18px', borderRadius: 'var(--radius-md)' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <span className="badge badge-primary" style={{ fontWeight: 700, fontSize: '11.5px' }}>
+                    {tpl.code}
+                  </span>
+                  <span className={`badge ${isLandscape ? 'badge-accent' : 'badge-subtle'}`} style={{ fontWeight: 600, fontSize: '11px' }}>
+                    {isLandscape ? '📑 Khổ Ngang (Landscape A4)' : '📄 Khổ Dọc (Portrait A4)'}
+                  </span>
+                </div>
+
+                <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
+                  {tpl.name}
+                </h4>
+                <div style={{ fontSize: '11.5px', color: 'var(--gf-primary)', fontWeight: 600, marginBottom: '8px' }}>
+                  {tpl.category}
+                </div>
+
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 12px 0', lineHeight: 1.5 }}>
+                  {tpl.description}
+                </p>
+
+                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '16px', padding: '6px 10px', background: 'var(--bg-subtle)', borderRadius: '4px' }}>
+                  Căn cứ: {tpl.legalBasis}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+                <button
+                  className="btn btn-primary btn-sm"
+                  style={{ flex: 1, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                  onClick={() => setActiveTravelForm({ template: tpl, data: tpl.defaultData })}
+                >
+                  <span>✏️ Soạn Thảo & Xem</span>
+                </button>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontWeight: 600 }}
+                  title="Tải ngay file Word (.docx) chuẩn theo khổ giấy"
+                  onClick={() => exportTravelFormToDocx(tpl.id, tpl.defaultData, tpl.defaultOrientation)}
+                >
+                  📥 Tải Word
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  )}
 
       {/* Modal Chi Tiết Đề Nghị (Request Detail Page Layout) */}
       {selectedRequest && (
@@ -394,6 +586,93 @@ export default function OperationsView() {
 
               {/* Visual Workflow Stepper & Activity Timeline */}
               <WorkflowTimeline request={selectedRequest} workflowTemplate={selectedWorkflow} />
+
+              {/* VĂN BẢN & BIỂU MẪU CHUẨN NGHỊ ĐỊNH 30 LIÊN KẾT */}
+              {['BUSINESS_TRIP', 'ADVANCE', 'SETTLEMENT', 'PAYMENT'].includes(selectedRequest.requestType) && (
+                <div style={{ marginTop: '20px', padding: '14px', background: 'rgba(0, 105, 100, 0.04)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(0, 105, 100, 0.25)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>📑</span>
+                    <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: 'var(--gf-primary)' }}>
+                      Văn Bản & Biểu Mẫu Chuẩn (Nghị Định 30/2020/NĐ-CP):
+                    </h4>
+                  </div>
+                  <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 10px 0' }}>
+                    Bấm để mở trình soạn thảo, xem trước trang ngang/dọc, xuất file Word (.docx) hoặc in/xuất PDF:
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {selectedRequest.requestType === 'BUSINESS_TRIP' && (
+                      <>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontWeight: 600 }}
+                          onClick={() => {
+                            const tpl = TRAVEL_FORM_TEMPLATES.find(t => t.id === TRAVEL_FORM_TYPES.FORM_CONG_TAC);
+                            setActiveTravelForm({ template: tpl, data: mapRequestToFormData(selectedRequest, tpl.id) });
+                          }}
+                        >
+                          📄 Giấy Đề Nghị Đi Công Tác (Khổ Dọc)
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontWeight: 600 }}
+                          onClick={() => {
+                            const tpl = TRAVEL_FORM_TEMPLATES.find(t => t.id === TRAVEL_FORM_TYPES.FORM_KE_HOACH_TUAN);
+                            setActiveTravelForm({ template: tpl, data: mapRequestToFormData(selectedRequest, tpl.id) });
+                          }}
+                        >
+                          📑 Kế Hoạch Tuần (Khổ Ngang - 7 Cột)
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontWeight: 600 }}
+                          onClick={() => {
+                            const tpl = TRAVEL_FORM_TEMPLATES.find(t => t.id === TRAVEL_FORM_TYPES.FORM_GIAY_DI_DUONG);
+                            setActiveTravelForm({ template: tpl, data: mapRequestToFormData(selectedRequest, tpl.id) });
+                          }}
+                        >
+                          📑 Giấy Đi Đường Lữ Hành (Mẫu 06-LĐTL)
+                        </button>
+                      </>
+                    )}
+                    {selectedRequest.requestType === 'ADVANCE' && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontWeight: 600 }}
+                        onClick={() => {
+                          const tpl = TRAVEL_FORM_TEMPLATES.find(t => t.id === TRAVEL_FORM_TYPES.FORM_TAM_UNG);
+                          setActiveTravelForm({ template: tpl, data: mapRequestToFormData(selectedRequest, tpl.id) });
+                        }}
+                      >
+                        💰 Giấy Đề Nghị Tạm Ứng (Khổ Dọc)
+                      </button>
+                    )}
+                    {selectedRequest.requestType === 'SETTLEMENT' && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontWeight: 600 }}
+                        onClick={() => {
+                          const tpl = TRAVEL_FORM_TEMPLATES.find(t => t.id === TRAVEL_FORM_TYPES.FORM_THANH_TOAN_TAM_UNG);
+                          setActiveTravelForm({ template: tpl, data: mapRequestToFormData(selectedRequest, tpl.id) });
+                        }}
+                      >
+                        ⚖️ Giấy Thanh Toán Tạm Ứng (Mẫu 04-TT)
+                      </button>
+                    )}
+                    {selectedRequest.requestType === 'PAYMENT' && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontWeight: 600 }}
+                        onClick={() => {
+                          const tpl = TRAVEL_FORM_TEMPLATES.find(t => t.id === TRAVEL_FORM_TYPES.FORM_DE_NGHI_THANH_TOAN);
+                          setActiveTravelForm({ template: tpl, data: mapRequestToFormData(selectedRequest, tpl.id) });
+                        }}
+                      >
+                        🧾 Giấy Đề Nghị Thanh Toán (Khổ Dọc)
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* VÙNG HÀNH ĐỘNG THEO VAI TRÒ */}
               {(canManagerAction || canDirectorAction || canAccountingAction) && (
@@ -537,6 +816,15 @@ export default function OperationsView() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* TRAVEL FORM MINI DOC EDITOR MODAL (WYSIWYG, Landscape / Portrait, DOCX, Print & PDF) */}
+      {activeTravelForm && (
+        <TravelFormMiniDocEditor
+          template={activeTravelForm.template}
+          initialData={activeTravelForm.data}
+          onClose={() => setActiveTravelForm(null)}
+        />
       )}
     </div>
   );
