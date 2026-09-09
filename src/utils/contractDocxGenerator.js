@@ -27,6 +27,16 @@ export async function exportContractToDocx(contract, person, template) {
     return generateHdntDocx(contract, person, template);
   }
 
+  const isAppendix = contract?.contractType === 'APPENDIX' || template?.id === 'TPL-APPENDIX' || contract?.templateId === 'TPL-APPENDIX';
+  if (isAppendix) {
+    return generateAppendixDocx(contract, person, template);
+  }
+
+  const isNda = contract?.contractType === 'NDA' || template?.id === 'TPL-NDA' || contract?.templateId === 'TPL-NDA';
+  if (isNda) {
+    return generateNdaDocx(contract, person, template);
+  }
+
   const contractCode = contract.contractCode || 'HĐHT-GENKI/01092026';
   const personName = person?.fullName?.toUpperCase() || contract.fullName?.toUpperCase() || 'ĐỐI TÁC';
   const partyARep = contract.partyARepresentative || 'LÊ TRÍ NAM';
@@ -2320,6 +2330,534 @@ export async function generateHdntDocx(contract, person, template) {
     URL.revokeObjectURL(url);
   }
 
-  return { success: true, fileName };
+  return { success: true, fileName, blob, doc };
+}
+
+/**
+ * Xuất file Phụ lục Hợp đồng (.DOCX) bổ sung hạn mức công nợ & danh mục SKU sản phẩm
+ */
+export async function generateAppendixDocx(contract, person, template) {
+  const appendixCode = contract?.contractCode || `PL-01/CTR-2026-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const parentContractRef = contract?.parentContractRef || 'HĐNT-GENKI/2026/01';
+  const partyBName = contract?.partyBCompany || contract?.partyBName || person?.fullName || 'ĐỐI TÁC PHÂN PHỐI';
+  const partyARep = contract?.partyARepresentative || 'LÊ TRÍ NAM';
+  const partyAPos = contract?.partyAPosition || 'Giám đốc Kinh Doanh';
+  const partyBRep = contract?.partyBRepresentative || person?.fullName || partyBName;
+  const partyBPos = contract?.partyBPosition || 'Đại diện Hợp pháp';
+  
+  const now = contract?.startDate ? new Date(contract.startDate) : new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear());
+
+  const creditLimit = Number(contract?.creditLimit || 25000000);
+  const discountRate = contract?.discountRate !== undefined ? contract.discountRate : 20;
+
+  const FONT_FAMILY = 'Times New Roman';
+  const SIZE_BODY = 26; // 13pt
+  const SIZE_TITLE = 30; // 15pt
+  const SIZE_HEADER = 24; // 12pt
+
+  const bordersNone = {
+    top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    right: { style: BorderStyle.NONE, size: 0, color: 'auto' }
+  };
+
+  const bordersTable = {
+    top: { style: BorderStyle.SINGLE, size: 4, color: '888888' },
+    bottom: { style: BorderStyle.SINGLE, size: 4, color: '888888' },
+    left: { style: BorderStyle.SINGLE, size: 4, color: '888888' },
+    right: { style: BorderStyle.SINGLE, size: 4, color: '888888' },
+    insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: 'CCCCCC' },
+    insideVertical: { style: BorderStyle.SINGLE, size: 4, color: 'CCCCCC' }
+  };
+
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: { top: 1134, bottom: 1134, left: 1701, right: 1134 }
+          }
+        },
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 120 },
+            children: [new TextRun({ text: 'Độc Lập – Tự do – Hạnh Phúc', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [new TextRun({ text: '———o0o———', font: FONT_FAMILY, size: SIZE_HEADER })]
+          }),
+
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 100, after: 60 },
+            children: [new TextRun({ text: 'PHỤ LỤC HỢP ĐỒNG KINH DOANH', font: FONT_FAMILY, size: SIZE_TITLE, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 80 },
+            children: [new TextRun({ text: `Số: ${appendixCode}`, font: FONT_FAMILY, size: SIZE_HEADER, italics: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [new TextRun({ text: `(Kèm theo và là bộ phận không thể tách rời của Hợp đồng số: ${parentContractRef})`, font: FONT_FAMILY, size: SIZE_HEADER, italics: true })]
+          }),
+
+          new Paragraph({
+            spacing: { after: 60 },
+            children: [new TextRun({ text: '- Căn cứ Bộ luật Dân sự số 91/2015/QH13 và Luật Thương mại số 36/2005/QH11;', font: FONT_FAMILY, size: SIZE_BODY, italics: true })]
+          }),
+          new Paragraph({
+            spacing: { after: 120 },
+            children: [new TextRun({ text: '- Căn cứ vào thỏa thuận hợp tác và nhu cầu thực tế của hai bên;', font: FONT_FAMILY, size: SIZE_BODY, italics: true })]
+          }),
+
+          new Paragraph({
+            spacing: { after: 140 },
+            children: [new TextRun({ text: `Hôm nay, ngày ${day} tháng ${month} năm ${year}, tại văn phòng Công ty CP Genki Fami Việt Nam, hai bên gồm có:`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // BÊN A
+          new Paragraph({
+            spacing: { before: 80, after: 40 },
+            children: [new TextRun({ text: 'BÊN A: CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: 'Địa chỉ: Số 107 ngõ 192 Lê Trọng Tấn, Tổ 1, P. Phương Liệt, TP. Hà Nội', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: 'Mã số thuế: 0108967890   |   Điện thoại: (+84) 438.53.9696', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            spacing: { after: 140 },
+            children: [new TextRun({ text: `Đại diện: Ông ${partyARep}   -   Chức vụ: ${partyAPos}`, font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+
+          // BÊN B
+          new Paragraph({
+            spacing: { before: 80, after: 40 },
+            children: [new TextRun({ text: `BÊN B: ${partyBName.toUpperCase()}`, font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: `Địa chỉ: ${contract?.partyBAddress || person?.address || 'Theo hợp đồng nguyên tắc đã ký'}`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: `Mã số thuế / CCCD: ${contract?.partyBTax || person?.identityNumber || '—'}   |   Điện thoại: ${contract?.partyBPhone || person?.phone || '—'}`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            spacing: { after: 180 },
+            children: [new TextRun({ text: `Đại diện: ${partyBRep}   -   Chức vụ: ${partyBPos}`, font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+
+          new Paragraph({
+            spacing: { after: 100 },
+            children: [new TextRun({ text: 'Hai bên cùng thống nhất ký kết Phụ lục này để điều chỉnh và bổ sung một số điều khoản như sau:', font: FONT_FAMILY, size: SIZE_BODY, italics: true })]
+          }),
+
+          // ĐIỀU 1
+          new Paragraph({
+            spacing: { before: 100, after: 40 },
+            children: [new TextRun({ text: 'ĐIỀU 1: ĐIỀU CHỈNH THỜI HẠN VÀ ĐỊA BÀN PHÂN PHỐI', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '1.1. Gia hạn thời gian thực hiện hợp đồng thêm 12 tháng kể từ ngày ký phụ lục này.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            indent: { firstLine: 720 },
+            spacing: { after: 100 },
+            children: [new TextRun({ text: `1.2. Mở rộng địa bàn khai thác sang các chuỗi nhà thuốc đối tác tại khu vực: ${contract?.territoryDescription || person?.region || 'Toàn quốc'}.`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // ĐIỀU 2
+          new Paragraph({
+            spacing: { before: 100, after: 40 },
+            children: [new TextRun({ text: 'ĐIỀU 2: NÂNG HẠN MỨC CÔNG NỢ GỐI ĐẦU & TỶ LỆ CHIẾT KHẤU', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: `2.1. Hạn mức nợ gối đầu tối đa áp dụng cho Bên B được nâng lên mức: ${formatVND(creditLimit)} VNĐ (Bằng chữ: ${numberToVietnameseWords(creditLimit)}).`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            indent: { firstLine: 720 },
+            spacing: { after: 100 },
+            children: [new TextRun({ text: `2.2. Tỷ lệ chiết khấu thương mại cố định áp dụng cho đơn hàng gối đầu: ${discountRate}% trên giá niêm yết bán lẻ toàn quốc.`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // ĐIỀU 3
+          new Paragraph({
+            spacing: { before: 100, after: 60 },
+            children: [new TextRun({ text: 'ĐIỀU 3: DANH MỤC SẢN PHẨM PHÂN PHỐI BỔ SUNG', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: bordersTable,
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({ width: { size: 8, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'STT', font: FONT_FAMILY, size: SIZE_HEADER, bold: true })] })] }),
+                  new TableCell({ width: { size: 42, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Tên Sản Phẩm Genki Fami', font: FONT_FAMILY, size: SIZE_HEADER, bold: true })] })] }),
+                  new TableCell({ width: { size: 18, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Quy Cách', font: FONT_FAMILY, size: SIZE_HEADER, bold: true })] })] }),
+                  new TableCell({ width: { size: 16, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Đơn Giá Niêm Yết', font: FONT_FAMILY, size: SIZE_HEADER, bold: true })] })] }),
+                  new TableCell({ width: { size: 16, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Giá CK (${discountRate}%)`, font: FONT_FAMILY, size: SIZE_HEADER, bold: true })] })] })
+                ]
+              }),
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '1', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Shirubasupurauto (Mầm súp lơ xanh)', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Hộp 60 viên', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: '850.000 đ', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: formatVND(850000 * (1 - discountRate / 100)), font: FONT_FAMILY, size: SIZE_HEADER })] })] })
+                ]
+              }),
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '2', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Denshichi Ninjin (Tam thất hoang dã)', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Hộp 120 viên', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: '1.250.000 đ', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: formatVND(1250000 * (1 - discountRate / 100)), font: FONT_FAMILY, size: SIZE_HEADER })] })] })
+                ]
+              }),
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '3', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Nattokinase Genki (Hỗ trợ tuần hoàn)', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Hộp 90 viên', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: '980.000 đ', font: FONT_FAMILY, size: SIZE_HEADER })] })] }),
+                  new TableCell({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: formatVND(980000 * (1 - discountRate / 100)), font: FONT_FAMILY, size: SIZE_HEADER })] })] })
+                ]
+              })
+            ]
+          }),
+
+          // ĐIỀU 4
+          new Paragraph({
+            spacing: { before: 120, after: 40 },
+            children: [new TextRun({ text: 'ĐIỀU 4: HIỆU LỰC VÀ ĐIỀU KHOẢN THI HÀNH', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '4.1. Phụ lục này có hiệu lực kể từ ngày ký và là bộ phận không tách rời của hợp đồng gốc. Mọi điều khoản khác của hợp đồng gốc không bị sửa đổi bởi Phụ lục này vẫn giữ nguyên hiệu lực thi hành.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            indent: { firstLine: 720 },
+            spacing: { after: 240 },
+            children: [new TextRun({ text: '4.2. Phụ lục được lập thành 04 bản tiếng Việt có giá trị pháp lý như nhau, Bên A giữ 02 bản, Bên B giữ 02 bản.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // Khối chữ ký
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: bordersNone,
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI DIỆN BÊN A', font: FONT_FAMILY, size: SIZE_BODY, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '(Ký, ghi rõ họ tên và đóng dấu)', font: FONT_FAMILY, size: SIZE_HEADER, italics: true })] }),
+                      new Paragraph({ spacing: { after: 800 }, children: [new TextRun({ text: '', font: FONT_FAMILY })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyARep, font: FONT_FAMILY, size: SIZE_BODY, bold: true })] })
+                    ]
+                  }),
+                  new TableCell({
+                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI DIỆN BÊN B', font: FONT_FAMILY, size: SIZE_BODY, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '(Ký, ghi rõ họ tên và đóng dấu)', font: FONT_FAMILY, size: SIZE_HEADER, italics: true })] }),
+                      new Paragraph({ spacing: { after: 800 }, children: [new TextRun({ text: '', font: FONT_FAMILY })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyBRep, font: FONT_FAMILY, size: SIZE_BODY, bold: true })] })
+                    ]
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      }
+    ]
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const cleanCode = appendixCode.replace(/Đ/g, 'D').replace(/đ/g, 'd').replace(/[/\\]/g, '_').replace(/[^a-zA-Z0-9.-]/g, '_');
+  const cleanName = partyBName.replace(/[^a-zA-Z0-9À-ỹ\s]/g, '').trim().replace(/\s+/g, '_');
+  const fileName = `${cleanCode}_${cleanName}.docx`;
+
+  if (typeof window !== 'undefined' && typeof document !== 'undefined' && document.createElement) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  return { success: true, fileName, blob, doc };
+}
+
+/**
+ * Xuất file Thỏa thuận Bảo mật Thông tin NDA (.DOCX) chuẩn chế tài pháp lý Genki Fami
+ */
+export async function generateNdaDocx(contract, person, template) {
+  const ndaCode = contract?.contractCode || `NDA-GENKI/2026-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const partyBName = contract?.partyBCompany || contract?.partyBName || person?.fullName || 'ĐỐI TÁC TIẾP NHẬN';
+  const partyARep = contract?.partyARepresentative || 'LÊ TRÍ NAM';
+  const partyAPos = contract?.partyAPosition || 'Giám đốc Kinh Doanh';
+  const partyBRep = contract?.partyBRepresentative || person?.fullName || partyBName;
+  const partyBPos = contract?.partyBPosition || 'Đại diện Hợp pháp';
+
+  const now = contract?.startDate ? new Date(contract.startDate) : new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear());
+
+  const FONT_FAMILY = 'Times New Roman';
+  const SIZE_BODY = 26; // 13pt
+  const SIZE_TITLE = 30; // 15pt
+  const SIZE_HEADER = 24; // 12pt
+
+  const bordersNone = {
+    top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    right: { style: BorderStyle.NONE, size: 0, color: 'auto' }
+  };
+
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: { top: 1134, bottom: 1134, left: 1701, right: 1134 }
+          }
+        },
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 120 },
+            children: [new TextRun({ text: 'Độc Lập – Tự do – Hạnh Phúc', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [new TextRun({ text: '———o0o———', font: FONT_FAMILY, size: SIZE_HEADER })]
+          }),
+
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 100, after: 60 },
+            children: [new TextRun({ text: 'THỎA THUẬN BẢO MẬT THÔNG TIN', font: FONT_FAMILY, size: SIZE_TITLE, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 60 },
+            children: [new TextRun({ text: 'VÀ BẢO VỆ BÍ MẬT KINH DOANH (NDA)', font: FONT_FAMILY, size: SIZE_TITLE - 2, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [new TextRun({ text: `Số: ${ndaCode}`, font: FONT_FAMILY, size: SIZE_HEADER, italics: true })]
+          }),
+
+          new Paragraph({
+            spacing: { after: 60 },
+            children: [new TextRun({ text: '- Căn cứ Bộ luật Dân sự số 91/2015/QH13;', font: FONT_FAMILY, size: SIZE_BODY, italics: true })]
+          }),
+          new Paragraph({
+            spacing: { after: 60 },
+            children: [new TextRun({ text: '- Căn cứ Luật Sở hữu Trí tuệ số 50/2005/QH11 (sửa đổi bổ sung 2022);', font: FONT_FAMILY, size: SIZE_BODY, italics: true })]
+          }),
+          new Paragraph({
+            spacing: { after: 120 },
+            children: [new TextRun({ text: '- Căn cứ Nghị định số 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân;', font: FONT_FAMILY, size: SIZE_BODY, italics: true })]
+          }),
+
+          new Paragraph({
+            spacing: { after: 140 },
+            children: [new TextRun({ text: `Hôm nay, ngày ${day} tháng ${month} năm ${year}, tại TP. Hà Nội, các bên gồm:`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // BÊN TIẾT LỘ (BÊN A)
+          new Paragraph({
+            spacing: { before: 80, after: 40 },
+            children: [new TextRun({ text: 'BÊN GIAO THÔNG TIN / TIẾT LỘ (BÊN A):', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: 'CÔNG TY CỔ PHẦN GENKI FAMI VIỆT NAM', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: 'Địa chỉ: Số 107 ngõ 192 Lê Trọng Tấn, Tổ 1, P. Phương Liệt, TP. Hà Nội, Việt Nam.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            spacing: { after: 140 },
+            children: [new TextRun({ text: `Đại diện: Ông ${partyARep}   -   Chức danh: ${partyAPos}`, font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+
+          // BÊN TIẾP NHẬN (BÊN B)
+          new Paragraph({
+            spacing: { before: 80, after: 40 },
+            children: [new TextRun({ text: 'BÊN TIẾP NHẬN THÔNG TIN (BÊN B):', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: partyBName.toUpperCase(), font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: `Địa chỉ: ${contract?.partyBAddress || person?.address || 'Theo hồ sơ pháp lý/CCCD'}`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: `Số CCCD/MST: ${contract?.partyBTax || person?.identityNumber || '—'}   |   Điện thoại: ${contract?.partyBPhone || person?.phone || '—'}`, font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            spacing: { after: 180 },
+            children: [new TextRun({ text: `Đại diện: ${partyBRep}   -   Chức danh: ${partyBPos}`, font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+
+          new Paragraph({
+            spacing: { after: 100 },
+            children: [new TextRun({ text: 'Hai bên tự nguyện cam kết tuân thủ nghiêm ngặt các điều khoản bảo mật như sau:', font: FONT_FAMILY, size: SIZE_BODY, italics: true })]
+          }),
+
+          // ĐIỀU 1
+          new Paragraph({
+            spacing: { before: 100, after: 40 },
+            children: [new TextRun({ text: 'ĐIỀU 1: ĐIỀU KHOẢN VỀ THÔNG TIN BẢO MẬT', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '1.1. "Thông tin bảo mật" bao gồm nhưng không giới hạn: Công thức sản phẩm thực phẩm chức năng Nhật Bản, bí quyết công nghệ, tệp danh bạ khách hàng/nhà thuốc, cơ chế giá chiết khấu, chiến lược tiếp thị, mã nguồn phần mềm, tài khoản hệ thống nội bộ, và mọi thông tin tài chính - pháp lý do Bên A cung cấp.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // ĐIỀU 2
+          new Paragraph({
+            spacing: { before: 100, after: 40 },
+            children: [new TextRun({ text: 'ĐIỀU 2: NGHĨA VỤ BẢO VỆ CỦA BÊN TIẾP NHẬN', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '2.1. Bên B cam kết áp dụng mọi biện pháp an ninh nghiêm ngặt nhất (tương đương với việc bảo vệ bí mật kinh doanh cốt lõi của chính mình) để bảo quản các Thông tin bảo mật của Bên A.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '2.2. Tuyệt đối không sao chép, trích xuất, phát tán hoặc chuyển giao cho bất kỳ bên thứ ba nào khi chưa có sự chấp thuận bằng văn bản của Tổng Giám Đốc Bên A.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '2.3. Không sử dụng thông tin bảo mật để cạnh tranh trực tiếp hoặc gián tiếp đối với các dòng sản phẩm của Genki Fami trên thị trường.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // ĐIỀU 3
+          new Paragraph({
+            spacing: { before: 100, after: 40 },
+            children: [new TextRun({ text: 'ĐIỀU 3: THỜI HẠN BẢO MẬT & BÀN GIAO THU HỒI', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '3.1. Nghĩa vụ bảo mật có hiệu lực vô điều kiện trong suốt thời gian các bên hợp tác và kéo dài tối thiểu 03 (ba) năm kể từ thời điểm chấm dứt hợp đồng hợp tác chính.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '3.2. Khi kết thúc hợp tác, Bên B có trách nhiệm tiêu hủy hoặc bàn giao trả lại nguyên vẹn toàn bộ tài liệu, dữ liệu điện tử, file mẫu theo yêu cầu của Bên A.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // ĐIỀU 4
+          new Paragraph({
+            spacing: { before: 100, after: 40 },
+            children: [new TextRun({ text: 'ĐIỀU 4: CHẾ TÀI VI PHẠM & BỒI THƯỜNG THIỆT HẠI', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: 720 },
+            children: [new TextRun({ text: '4.1. Trường hợp Bên B vi phạm bất kỳ nghĩa vụ nào quy định tại Thỏa thuận này dẫn tới rò rỉ thông tin hoặc gây tổn hại đến thương hiệu Genki Fami, Bên B phải chịu mức phạt vi phạm hợp đồng tối đa theo luật định và bồi thường 100% toàn bộ thiệt hại thực tế phát sinh.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // ĐIỀU 5
+          new Paragraph({
+            spacing: { before: 100, after: 40 },
+            children: [new TextRun({ text: 'ĐIỀU 5: ĐIỀU KHOẢN CHUNG', font: FONT_FAMILY, size: SIZE_BODY, bold: true })]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: 720 },
+            spacing: { after: 240 },
+            children: [new TextRun({ text: '5.1. Thỏa thuận này được điều chỉnh bởi pháp luật Việt Nam. Mọi tranh chấp nếu không thương lượng được sẽ đưa ra Tòa án có thẩm quyền tại TP. Hà Nội giải quyết. Thỏa thuận lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau.', font: FONT_FAMILY, size: SIZE_BODY })]
+          }),
+
+          // Khối chữ ký
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: bordersNone,
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI DIỆN BÊN A (TIẾT LỘ)', font: FONT_FAMILY, size: SIZE_BODY, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '(Ký, ghi rõ họ tên và đóng dấu)', font: FONT_FAMILY, size: SIZE_HEADER, italics: true })] }),
+                      new Paragraph({ spacing: { after: 800 }, children: [new TextRun({ text: '', font: FONT_FAMILY })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyARep, font: FONT_FAMILY, size: SIZE_BODY, bold: true })] })
+                    ]
+                  }),
+                  new TableCell({
+                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI DIỆN BÊN B (TIẾP NHẬN)', font: FONT_FAMILY, size: SIZE_BODY, bold: true })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '(Ký, ghi rõ họ tên và đóng dấu)', font: FONT_FAMILY, size: SIZE_HEADER, italics: true })] }),
+                      new Paragraph({ spacing: { after: 800 }, children: [new TextRun({ text: '', font: FONT_FAMILY })] }),
+                      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: partyBRep, font: FONT_FAMILY, size: SIZE_BODY, bold: true })] })
+                    ]
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      }
+    ]
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const cleanCode = ndaCode.replace(/Đ/g, 'D').replace(/đ/g, 'd').replace(/[/\\]/g, '_').replace(/[^a-zA-Z0-9.-]/g, '_');
+  const cleanName = partyBName.replace(/[^a-zA-Z0-9À-ỹ\s]/g, '').trim().replace(/\s+/g, '_');
+  const fileName = `${cleanCode}_${cleanName}.docx`;
+
+  if (typeof window !== 'undefined' && typeof document !== 'undefined' && document.createElement) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  return { success: true, fileName, blob, doc };
 }
 

@@ -1,58 +1,110 @@
-/* Genki Fami Design System Tokens */
+/* Genki Fami & Stitch Precision Operations Portal Design System Tokens */
 :root {
-  /* Brand Palette */
-  --gf-primary: #006964;          /* Main brand teal */
-  --gf-primary-hover: #005652;
-  --gf-primary-light: #e6f3f0;
-  --gf-secondary: #51BF9D;        /* Mint accent & success */
-  --gf-secondary-light: #eaf8f4;
-  --gf-accent: #A71D45;           /* Magenta critical / alert */
-  --gf-accent-light: #fbebf0;
-  --gf-tint: #D7EDE6;             /* Calm background tint */
-  --gf-ink: #191919;              /* Deep text and dark surfaces */
+  /* Stitch Precision Operations Palette */
+  --stitch-primary: #004ac6;
+  --stitch-primary-container: #2563eb;
+  --stitch-primary-hover: #1d4ed8;
+  --stitch-on-primary: #ffffff;
+  --stitch-primary-fixed: #dbe1ff;
+  --stitch-on-primary-fixed: #00174b;
+
+  --stitch-surface: #f8f9ff;
+  --stitch-surface-lowest: #ffffff;
+  --stitch-surface-low: #eff4ff;
+  --stitch-surface-container: #e5eeff;
+  --stitch-surface-high: #dce9ff;
+  --stitch-surface-highest: #d3e4fe;
+  --stitch-surface-dim: #cbdbf5;
+
+  --stitch-on-surface: #0b1c30;
+  --stitch-on-surface-variant: #434655;
+  --stitch-secondary: #565e74;
+  --stitch-secondary-container: #dae2fd;
+  --stitch-tertiary: #4338d9;
+  --stitch-tertiary-container: #5d55f3;
+  --stitch-outline: #737686;
+  --stitch-outline-variant: #c3c6d7;
+
+  /* Stitch Semantic States */
+  --stitch-success: #059669;
+  --stitch-success-bg: #ecfdf5;
+  --stitch-success-border: #a7f3d0;
+  --stitch-success-text: #065f46;
+
+  --stitch-warning: #d97706;
+  --stitch-warning-bg: #fffbeb;
+  --stitch-warning-border: #fde68a;
+  --stitch-warning-text: #92400e;
+
+  --stitch-danger: #e11d48;
+  --stitch-danger-bg: #fff1f2;
+  --stitch-danger-border: #fecdd3;
+  --stitch-danger-text: #9f1239;
+
+  --stitch-indigo: #4f46e5;
+  --stitch-indigo-bg: #eef2ff;
+  --stitch-indigo-border: #c7d2fe;
+  --stitch-indigo-text: #3730a3;
+
+  /* Legacy Brand Palette Compatibility mapped to Precision Theme */
+  --gf-primary: #004ac6;
+  --gf-primary-hover: #003ea8;
+  --gf-primary-light: #eff4ff;
+  --gf-secondary: #059669;
+  --gf-secondary-light: #ecfdf5;
+  --gf-accent: #e11d48;
+  --gf-accent-light: #fff1f2;
+  --gf-tint: #e5eeff;
+  --gf-ink: #0b1c30;
   
   /* Neutral Palette */
-  --bg-app: #f8faf9;
+  --bg-app: #f8f9ff;
   --bg-surface: #ffffff;
-  --bg-subtle: #f1f5f3;
-  --border-color: #e2e8e5;
-  --border-light: #edf2ef;
-  --text-primary: #191919;
-  --text-secondary: #52605b;
-  --text-muted: #7c8d87;
+  --bg-subtle: #eff4ff;
+  --border-color: #dce9ff;
+  --border-light: #e5eeff;
+  --text-primary: #0b1c30;
+  --text-secondary: #565e74;
+  --text-muted: #737686;
   --text-inverse: #ffffff;
 
   /* Semantic Status Colors */
-  --status-pending-bg: #fef9c3;
-  --status-pending-text: #854d0e;
-  --status-approved-bg: #dcfce7;
-  --status-approved-text: #166534;
-  --status-action-bg: #e0f2fe;
-  --status-action-text: #075985;
-  --status-rejected-bg: #fee2e2;
-  --status-rejected-text: #991b1b;
-  --status-completed-bg: #d1fae5;
+  --status-pending-bg: #fffbeb;
+  --status-pending-text: #92400e;
+  --status-approved-bg: #ecfdf5;
+  --status-approved-text: #065f46;
+  --status-action-bg: #eff4ff;
+  --status-action-text: #004ac6;
+  --status-rejected-bg: #fff1f2;
+  --status-rejected-text: #9f1239;
+  --status-completed-bg: #ecfdf5;
   --status-completed-text: #065f46;
   --status-paid-bg: #ecfdf5;
   --status-paid-text: #047857;
-  --status-draft-bg: #f3f4f6;
-  --status-draft-text: #4b5563;
+  --status-draft-bg: #eef2ff;
+  --status-draft-text: #3730a3;
+
+  /* Dimensions */
+  --sidebar-width: 260px;
+  --header-height: 56px;
 
   /* Typography */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Space Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Inter', monospace;
 
   /* Elevation & Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 40, 35, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 40, 35, 0.08), 0 2px 4px -1px rgba(0, 40, 35, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 40, 35, 0.1), 0 4px 6px -2px rgba(0, 40, 35, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 40, 35, 0.15), 0 10px 10px -5px rgba(0, 40, 35, 0.06);
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
 
   /* Borders & Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
   /* Transitions */

@@ -20,8 +20,81 @@ export default function ContractsView() {
     updateContractStatus
   } = useApp();
 
-  // Tab navigation: 'list' | 'templates'
-  const [activeContractTab, setActiveContractTab] = useState('list');
+  const STITCH_CONTRACT_TEMPLATES = [
+    {
+      id: 'TPL-HTKD',
+      type: 'HTKD',
+      name: 'HĐ Hợp Tác Kinh Doanh & Chuyên Gia 2025',
+      category: 'Cộng tác viên & Chuyên gia',
+      tag: 'Phổ biến nhất',
+      tagColor: 'badge-primary',
+      icon: 'handshake',
+      description: 'Dành cho CTV, dược sĩ & chuyên gia tư vấn. Tự động tính thù lao PCB (cứng) + PKT (kinh tế) & thưởng doanh số bậc thang.',
+      docsUrl: 'https://docs.google.com/document/d/genki-template-htkd-2025',
+      defaultSalary: '8000000',
+      defaultAllowance: '7000000',
+      defaultTerritory: 'Hà Nội và các tỉnh phía Bắc'
+    },
+    {
+      id: 'TPL-HDNT',
+      type: 'HDNT',
+      name: 'HĐ Đại Lý Phân Phối & Nhà Thuốc (HĐNT)',
+      category: 'Đại lý & Nhà thuốc',
+      tag: 'Thương mại B2B',
+      tagColor: 'badge-accent',
+      icon: 'store',
+      description: 'Dành cho nhà thuốc, phòng khám & spa phân phối TPCN Genki Fami. Điều khoản chiết khấu, hạn mức công nợ gối đầu & chống bán phá giá.',
+      docsUrl: 'https://docs.google.com/document/d/genki-template-hdnt-master',
+      defaultDiscount: 18,
+      defaultCreditLimit: '12021200',
+      defaultTerritory: 'Hệ thống nhà thuốc & phòng khám khu vực'
+    },
+    {
+      id: 'TPL-HDLD',
+      type: 'HDLD',
+      name: 'HĐ Lao Động Toàn Thời Gian (HĐLĐ 2025)',
+      category: 'Nhân sự chính thức',
+      tag: 'Nội bộ công ty',
+      tagColor: 'badge-success',
+      icon: 'badge',
+      description: 'Hợp đồng lao động xác định thời hạn theo Bộ luật Lao động 2019. Chức danh, lương đóng BHXH, thưởng hiệu suất, ăn trưa & bảo mật sản phẩm.',
+      docsUrl: 'https://docs.google.com/document/d/genki-template-hdld-2025',
+      defaultSalary: '7491370',
+      defaultAllowance: '1278630',
+      defaultTerritory: 'Văn phòng & Chi nhánh Genki Fami'
+    },
+    {
+      id: 'TPL-APPENDIX',
+      type: 'HTKD',
+      name: 'Phụ Lục Gia Hạn & Bổ Sung Hạn Mức',
+      category: 'Tái ký & Bổ sung',
+      tag: 'Phụ lục sửa đổi',
+      tagColor: 'badge-subtle',
+      icon: 'post_add',
+      description: 'Áp dụng khi gia hạn thời hạn hợp đồng, nâng hạn mức công nợ gối đầu hoặc bổ sung danh mục sản phẩm mới.',
+      docsUrl: 'https://docs.google.com/document/d/genki-template-appendix-2025',
+      defaultSalary: '10000000',
+      defaultAllowance: '5000000',
+      defaultTerritory: 'Mở rộng thị trường toàn quốc'
+    },
+    {
+      id: 'TPL-NDA',
+      type: 'STAFF',
+      name: 'Thỏa Thuận Bảo Mật Thông Tin & Độc Quyền (NDA)',
+      category: 'Pháp lý bảo mật',
+      tag: 'Bảo mật tuyệt đối',
+      tagColor: 'badge-action',
+      icon: 'verified_user',
+      description: 'Cam kết bảo mật công thức sản phẩm độc quyền Genki Fami Nhật Bản, danh sách nhà thuốc và bảng giá chiết khấu.',
+      docsUrl: 'https://docs.google.com/document/d/genki-template-nda-2025',
+      defaultSalary: '0',
+      defaultAllowance: '0',
+      defaultTerritory: 'Bảo mật thương mại toàn cầu'
+    }
+  ];
+
+  // Tab navigation: 'generator' | 'list' | 'templates'
+  const [activeContractTab, setActiveContractTab] = useState('generator');
 
   // Modals & Editor states
   const [selectedContract, setSelectedContract] = useState(null);
@@ -32,10 +105,11 @@ export default function ContractsView() {
   // Loading & export feedback state
   const [isExportingDocx, setIsExportingDocx] = useState(false);
   const [exportFeedback, setExportFeedback] = useState(null);
+  const [previewMode, setPreviewMode] = useState('FULL_12_ARTICLES'); // 'SUMMARY' | 'FULL_12_ARTICLES'
 
   // Form states tạo hợp đồng
   const [personId, setPersonId] = useState(people[0]?.id || '');
-  const [templateId, setTemplateId] = useState(contractTemplates[0]?.id || 'TPL-HTKD');
+  const [templateId, setTemplateId] = useState('TPL-HTKD');
   const [contractType, setContractType] = useState('HTKD');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0]);
@@ -79,8 +153,8 @@ export default function ContractsView() {
   const role = currentPerson.role;
 
   // Lọc hợp đồng theo phân quyền:
-  // - CTV / Staff: CHỈ xem hợp đồng của chính mình
-  // - Manager: Xem hợp đồng của nhân sự do mình quản lý
+  // - CTV / Staff: CHỈ xem hợp đồng của chính mình hoặc do mình tạo/đại diện
+  // - Manager: Xem hợp đồng của nhân sự do mình quản lý hoặc do mình tạo
   // - Director / Admin / Accounting: Xem tất cả
   const visibleContracts = contracts.filter(c => {
     if (role === 'DIRECTOR' || role === 'ADMIN' || role === 'ACCOUNTING') {
@@ -88,9 +162,10 @@ export default function ContractsView() {
     }
     if (role === 'MANAGER') {
       const person = people.find(p => p.id === c.personId);
-      return person && (person.managerId === currentPerson.id || person.id === currentPerson.id);
+      return (person && (person.managerId === currentPerson?.id || person.id === currentPerson?.id)) ||
+        c.createdBy === currentPerson?.id || c.personId === currentPerson?.id;
     }
-    return c.personId === currentPerson.id;
+    return c.personId === currentPerson?.id || c.createdBy === currentPerson?.id || c.partyBName === currentPerson?.fullName;
   });
 
   // Selected person details for form
@@ -245,6 +320,12 @@ export default function ContractsView() {
         {/* Tab Navigation */}
         <div className="contracts-tabs">
           <button
+            className={`contract-tab-btn ${activeContractTab === 'generator' ? 'active' : ''}`}
+            onClick={() => setActiveContractTab('generator')}
+          >
+            📑 Trình Tạo Hợp Đồng Mẫu
+          </button>
+          <button
             className={`contract-tab-btn ${activeContractTab === 'list' ? 'active' : ''}`}
             onClick={() => setActiveContractTab('list')}
           >
@@ -254,10 +335,603 @@ export default function ContractsView() {
             className={`contract-tab-btn ${activeContractTab === 'templates' ? 'active' : ''}`}
             onClick={() => setActiveContractTab('templates')}
           >
-            📑 Thư Viện Hợp Đồng Mẫu ({contractTemplates.length})
+            📚 Thư Viện Biểu Mẫu Chuẩn ({contractTemplates.length})
           </button>
         </div>
       </div>
+
+      {/* TAB: TRÌNH TẠO HỢP ĐỒNG MẪU (STITCH SCREEN 4) */}
+      {activeContractTab === 'generator' && (
+        <div>
+          {/* Section 1: Chọn Mẫu Hợp Đồng Chuẩn */}
+          <div className="card" style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <span className="badge badge-primary" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>
+                  BƯỚC 1: CHỌN MẪU HỢP ĐỒNG PHÁP LÝ CHUẨN
+                </span>
+                <h3 style={{ margin: '6px 0 0 0', fontSize: '17px', fontWeight: 800 }}>
+                  Thư Viện 5 Mẫu Hợp Đồng Chuẩn Doanh Nghiệp (Stitch Core)
+                </h3>
+              </div>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                Đã duyệt bởi Ban Pháp chế & Tổng Giám Đốc
+              </span>
+            </div>
+
+            {/* 5 Template Cards Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+              {STITCH_CONTRACT_TEMPLATES.map(tpl => {
+                const isSelected = templateId === tpl.id;
+                return (
+                  <div
+                    key={tpl.id}
+                    onClick={() => {
+                      setTemplateId(tpl.id);
+                      setContractType(tpl.type);
+                      if (tpl.id === 'TPL-HTKD') {
+                        setSalary('8000000');
+                        setAllowance('7000000');
+                        setKpiTargetRevenue('100000000');
+                        setTerritoryDescription('Hà Nội và các tỉnh phía Bắc');
+                      } else if (tpl.id === 'TPL-HDNT') {
+                        setDiscountRate(18);
+                        setFirstOrderDebt('12021200');
+                        setCreditLimit('12021200');
+                        setPartyBType('ENTERPRISE');
+                        setPartyBPosition('Giám đốc');
+                        setTerritoryDescription('Hệ thống nhà thuốc & phòng khám khu vực');
+                      } else if (tpl.id === 'TPL-HDLD') {
+                        setSalary('7491370');
+                        setPerformanceBonus('1278630');
+                        setMealAllowance('730000');
+                        setContractDuration('02 năm');
+                        setJobTitle('Nhân viên Điều phối Kho vận & Hỗ trợ Kinh doanh');
+                        setDepartment('Phòng Quản lý Kho vận & Hỗ trợ Kinh doanh');
+                        setTerritoryDescription('Văn phòng Tổng công ty & Chi nhánh');
+                      } else if (tpl.id === 'TPL-APPENDIX') {
+                        setSalary('10000000');
+                        setAllowance('5000000');
+                        setTerritoryDescription('Mở rộng thị trường toàn quốc');
+                      } else if (tpl.id === 'TPL-NDA') {
+                        setSalary('0');
+                        setAllowance('0');
+                        setTerritoryDescription('Bảo mật công nghệ và chính sách giá');
+                      }
+                    }}
+                    style={{
+                      border: isSelected ? '2px solid var(--stitch-primary)' : '1px solid var(--border-color)',
+                      backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.04)' : '#fff',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span className={`badge ${tpl.tagColor}`} style={{ fontSize: '10.5px', fontWeight: 700 }}>
+                          {tpl.tag}
+                        </span>
+                        {isSelected && (
+                          <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '20px' }}>
+                            check_circle
+                          </span>
+                        )}
+                      </div>
+                      <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {tpl.name}
+                      </h4>
+                      <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                        {tpl.description}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ flex: 1, fontSize: '11.5px', fontWeight: 600 }}
+                      >
+                        {isSelected ? '✓ Đang Soạn Mẫu Này' : 'Chọn Mẫu Này'}
+                      </button>
+                      <a
+                        href={tpl.docsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: '4px 6px', color: 'var(--text-muted)' }}
+                        title="Xem văn bản mẫu trên Google Docs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 2: Điền Thông Tin & Soát Trước Hợp Đồng (Split Grid) */}
+          <div className="stitch-split-grid">
+            {/* LEFT: Form Intake */}
+            <div>
+              <div className="card">
+                <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                  <span className="badge badge-accent" style={{ fontSize: '11px', fontWeight: 700 }}>
+                    BƯỚC 2: ĐIỀN THÔNG TIN ĐỐI SOÁT
+                  </span>
+                  <h3 style={{ margin: '6px 0 0 0', fontSize: '16px', fontWeight: 800 }}>
+                    Dữ Liệu Hợp Đồng & Thông Số Tài Chính
+                  </h3>
+                </div>
+
+                <form onSubmit={handleCreateContract}>
+                  {/* Fast Fill Selector */}
+                  <div className="form-group" style={{ background: 'var(--stitch-primary-light)', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(37, 99, 235, 0.2)' }}>
+                    <label className="form-label" style={{ color: 'var(--stitch-primary)', fontWeight: 700 }}>
+                      ⚡ Điền Nhanh Dữ Liệu Đối Tác / Nhân Sự:
+                    </label>
+                    <select
+                      className="form-select"
+                      value={personId}
+                      onChange={(e) => {
+                        const pid = e.target.value;
+                        setPersonId(pid);
+                        const p = people.find(item => item.id === pid);
+                        if (p) {
+                          setPartyBCompany(p.fullName);
+                          setPartyBRepresentative(p.fullName);
+                          setPartyBTax(p.taxNumber || p.identityCard || '');
+                          setPartyBAddress(p.address || '');
+                        }
+                      }}
+                    >
+                      {people.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.fullName} ({p.role} - {p.region})
+                        </option>
+                      ))}
+                    </select>
+                    <small style={{ color: 'var(--stitch-primary)', display: 'block', marginTop: '4px' }}>
+                      Tự động nạp thông tin pháp nhân/cá nhân vào các điều khoản hợp đồng.
+                    </small>
+                  </div>
+
+                  {/* Dates Row */}
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Ngày Bắt Đầu Hiệu Lực *</label>
+                      <input
+                        type="date"
+                        className="form-input"
+                        required
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Ngày Kết Thúc Hiệu Lực *</label>
+                      <input
+                        type="date"
+                        className="form-input"
+                        required
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Template Specific Financial Specs */}
+                  {templateId === 'TPL-HTKD' && (
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">Phụ Cấp Cứng (PCB) *</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          required
+                          value={salary}
+                          onChange={(e) => setSalary(e.target.value)}
+                        />
+                        <small style={{ color: 'var(--text-muted)' }}>{formatVND(salary)} / tháng</small>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Phụ Cấp Kinh Tế (PKT) *</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          required
+                          value={allowance}
+                          onChange={(e) => setAllowance(e.target.value)}
+                        />
+                        <small style={{ color: 'var(--text-muted)' }}>{formatVND(allowance)} / tháng</small>
+                      </div>
+                    </div>
+                  )}
+
+                  {templateId === 'TPL-HDNT' && (
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">Chiết Khấu Đại Lý (%) *</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          required
+                          value={discountRate}
+                          onChange={(e) => setDiscountRate(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Hạn Mức Công Nợ Gối Đầu (VNĐ) *</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          required
+                          value={firstOrderDebt}
+                          onChange={(e) => {
+                            setFirstOrderDebt(e.target.value);
+                            setCreditLimit(e.target.value);
+                          }}
+                        />
+                        <small style={{ color: 'var(--text-muted)' }}>{formatVND(firstOrderDebt)}</small>
+                      </div>
+                    </div>
+                  )}
+
+                  {templateId === 'TPL-HDLD' && (
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">Lương Chức Danh Đóng BHXH *</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          required
+                          value={salary}
+                          onChange={(e) => setSalary(e.target.value)}
+                        />
+                        <small style={{ color: 'var(--text-muted)' }}>{formatVND(salary)} / tháng</small>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Thưởng Hiệu Suất (Performance) *</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          required
+                          value={performanceBonus}
+                          onChange={(e) => setPerformanceBonus(e.target.value)}
+                        />
+                        <small style={{ color: 'var(--text-muted)' }}>{formatVND(performanceBonus)}</small>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Territory & Scope */}
+                  <div className="form-group">
+                    <label className="form-label">Địa Bàn / Phạm Vi Phụ Trách *</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      required
+                      value={territoryDescription}
+                      onChange={(e) => setTerritoryDescription(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Additional Terms */}
+                  <div className="form-group">
+                    <label className="form-label">Điều Khoản Riêng / Ghi Chú Pháp Lý</label>
+                    <textarea
+                      className="form-textarea"
+                      rows={2}
+                      value={additionalTerms}
+                      onChange={(e) => setAdditionalTerms(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Actions Bar */}
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '18px' }}>
+                    <button type="submit" className="btn btn-primary" style={{ fontWeight: 700 }}>
+                      ✓ Lưu Hợp Đồng Vào Hệ Thống
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        const tpl = contractTemplates.find(t => t.id === templateId) || contractTemplates[0];
+                        const person = people.find(p => p.id === personId) || people[0];
+                        setEditingContract({
+                          id: 'DRAFT-' + Date.now(),
+                          contractCode: `CTR-2026-${contractType}-DRAFT`,
+                          personId,
+                          templateId,
+                          contractType,
+                          startDate,
+                          endDate,
+                          salary: Number(salary) || 0,
+                          allowance: Number(allowance) || 0,
+                          performanceBonus: Number(performanceBonus) || 0,
+                          mealAllowance: Number(mealAllowance) || 730000,
+                          contractDuration: contractDuration || '02 năm',
+                          discountRate: Number(discountRate) || 18,
+                          firstOrderDebt: Number(firstOrderDebt) || 12021200,
+                          creditLimit: Number(creditLimit) || 12021200,
+                          territoryDescription,
+                          additionalTerms,
+                          partyBCompany: partyBCompany || person.fullName,
+                          partyBTax: partyBTax || person.taxNumber || person.identityCard || '',
+                          partyBAddress: partyBAddress || person.address || '',
+                          partyBRepresentative: partyBRepresentative || person.fullName
+                        });
+                      }}
+                    >
+                      ✏️ Mở Mini Doc Editor
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        const dummy = {
+                          personId,
+                          templateId,
+                          contractType,
+                          contractCode: `CTR-2026-${contractType}-PREVIEW`,
+                          startDate,
+                          endDate,
+                          salary: Number(salary) || 0,
+                          allowance: Number(allowance) || 0,
+                          discountRate: Number(discountRate) || 18,
+                          firstOrderDebt: Number(firstOrderDebt) || 12021200,
+                          creditLimit: Number(creditLimit) || 12021200,
+                          territoryDescription,
+                          additionalTerms
+                        };
+                        handleExportDocx(dummy);
+                      }}
+                    >
+                      📥 Tải Word (.docx)
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            {/* RIGHT: Live Pre-flight A4 Preview Sheet */}
+            <div>
+              <div className="card" style={{ padding: '0', overflow: 'hidden', background: '#e2e8f0' }}>
+                <div style={{ padding: '12px 16px', background: '#1e293b', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#38bdf8' }}>visibility</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700 }}>Soát Trước Hợp Đồng (Live A4 Preview)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', background: 'rgba(255,255,255,0.1)', padding: '2px', borderRadius: '6px' }}>
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        style={{
+                          fontSize: '11px',
+                          padding: '3px 8px',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          background: previewMode === 'SUMMARY' ? 'var(--stitch-primary)' : 'transparent',
+                          color: '#fff',
+                          fontWeight: previewMode === 'SUMMARY' ? 700 : 500
+                        }}
+                        onClick={() => setPreviewMode('SUMMARY')}
+                      >
+                        Tóm tắt cốt lõi
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        style={{
+                          fontSize: '11px',
+                          padding: '3px 8px',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          background: previewMode === 'FULL_12_ARTICLES' ? 'var(--stitch-primary)' : 'transparent',
+                          color: '#fff',
+                          fontWeight: previewMode === 'FULL_12_ARTICLES' ? 700 : 500
+                        }}
+                        onClick={() => setPreviewMode('FULL_12_ARTICLES')}
+                      >
+                        Toàn văn 12 điều khoản
+                      </button>
+                    </div>
+                    <span className="badge badge-accent" style={{ fontSize: '11px' }}>
+                      Khổ A4 Dọc
+                    </span>
+                  </div>
+                </div>
+
+                {/* Simulated A4 Paper Sheet */}
+                <div style={{ margin: '16px auto', width: '92%', maxWidth: '580px', minHeight: '680px', background: '#fff', boxShadow: '0 4px 14px rgba(0,0,0,0.12)', padding: '28px 24px', fontFamily: '"Times New Roman", Times, serif', color: '#111827', lineHeight: 1.5, fontSize: '12px' }}>
+                  {/* Header Quốc hiệu */}
+                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                    <div style={{ fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>
+                      CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+                    </div>
+                    <div style={{ fontWeight: 700, fontSize: '11px' }}>
+                      Độc lập - Tự do - Hạnh phúc
+                    </div>
+                    <div style={{ width: '120px', height: '1px', background: '#374151', margin: '4px auto 14px auto' }} />
+                    <div style={{ fontWeight: 800, fontSize: '14.5px', textTransform: 'uppercase', color: '#0f172a' }}>
+                      {STITCH_CONTRACT_TEMPLATES.find(t => t.id === templateId)?.name || 'HỢP ĐỒNG KINH DOANH'}
+                    </div>
+                    <div style={{ fontSize: '11px', fontStyle: 'italic', color: '#64748b' }}>
+                      Số: CTR-2026-{contractType}-... / GF-VN
+                    </div>
+                  </div>
+
+                  {/* Parties Block */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ fontWeight: 700 }}>BÊN A: CÔNG TY TNHH DƯỢC PHẨM GENKI FAMI VIỆT NAM</div>
+                    <div style={{ fontSize: '11px', color: '#4b5563' }}>Địa chỉ: Tầng 6, Số 19/48 Nguyễn Cửu Đàm, P. Tân Sơn Nhì, Q. Tân Phú, TP. HCM</div>
+                    <div style={{ fontSize: '11px', color: '#4b5563' }}>Đại diện: Ban Giám Đốc • Hotline: 028.7300.6868 • MST: 0315487692</div>
+                  </div>
+
+                  <div style={{ marginBottom: '14px', borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
+                    <div style={{ fontWeight: 700 }}>BÊN B: {selectedPersonForForm?.fullName?.toUpperCase() || 'ĐỐI TÁC / NHÂN SỰ'}</div>
+                    <div style={{ fontSize: '11px', color: '#4b5563' }}>
+                      Mã số thuế / CCCD: <strong>{partyBTax || selectedPersonForForm?.taxNumber || selectedPersonForForm?.identityCard || '0108923481'}</strong>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#4b5563' }}>
+                      Địa chỉ: {partyBAddress || selectedPersonForForm?.address || 'Hà Nội / TP. Hồ Chí Minh'}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#4b5563' }}>
+                      Điện thoại: {selectedPersonForForm?.phone || '098...'} • Email: {selectedPersonForForm?.email || 'doitac@genkifami.vn'}
+                    </div>
+                  </div>
+
+                  {/* Key Articles: Either Summary or Full 12 Articles */}
+                  {previewMode === 'SUMMARY' ? (
+                    <div>
+                      <div style={{ marginBottom: '10px' }}>
+                        <div style={{ fontWeight: 700 }}>Điều 1: Mục đích & Phạm vi hợp tác</div>
+                        <p style={{ margin: '2px 0 4px 0', fontSize: '11.5px', color: '#374151' }}>
+                          Bên B đồng ý tiếp nhận nhiệm vụ phát triển thị trường và phân phối các dòng sản phẩm chăm sóc sức khỏe Genki Fami tại địa bàn <strong>{territoryDescription}</strong>.
+                        </p>
+                      </div>
+
+                      <div style={{ marginBottom: '10px' }}>
+                        <div style={{ fontWeight: 700 }}>Điều 2: Chế độ tài chính & Thù lao</div>
+                        {templateId === 'TPL-HTKD' ? (
+                          <p style={{ margin: '2px 0 4px 0', fontSize: '11.5px', color: '#374151' }}>
+                            - Phụ cấp cứng chức danh (PCB): <strong>{formatVND(salary)}/tháng</strong>.<br />
+                            - Phụ cấp kinh tế phát triển thị trường (PKT): <strong>{formatVND(allowance)}/tháng</strong>.<br />
+                            - Tổng thu nhập cố định định kỳ: <strong>{formatVND(Number(salary) + Number(allowance))}/tháng</strong>.
+                          </p>
+                        ) : templateId === 'TPL-HDNT' ? (
+                          <p style={{ margin: '2px 0 4px 0', fontSize: '11.5px', color: '#374151' }}>
+                            - Mức chiết khấu thương mại đại lý: <strong>{discountRate}%</strong> trên bảng giá niêm yết.<br />
+                            - Hạn mức nợ gối đầu đơn đầu tiên: <strong>{formatVND(firstOrderDebt)}</strong> (Tất toán khi thanh lý HĐ).<br />
+                            - Cam kết bảo vệ giá niêm yết, không bán phá giá trên các sàn TMĐT.
+                          </p>
+                        ) : (
+                          <p style={{ margin: '2px 0 4px 0', fontSize: '11.5px', color: '#374151' }}>
+                            - Lương chức danh đóng BHXH: <strong>{formatVND(salary)}/tháng</strong>.<br />
+                            - Phụ cấp hiệu suất: <strong>{formatVND(performanceBonus)}/tháng</strong>.<br />
+                            - Tiền ăn trưa hỗ trợ: <strong>{formatVND(mealAllowance)}/tháng</strong>.
+                          </p>
+                        )}
+                      </div>
+
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontWeight: 700 }}>Điều 3: Thời hạn hợp đồng</div>
+                        <p style={{ margin: '2px 0 4px 0', fontSize: '11.5px', color: '#374151' }}>
+                          Hiệu lực từ ngày <strong>{formatDate(startDate)}</strong> đến hết ngày <strong>{formatDate(endDate)}</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '11px', color: '#374151' }}>
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 1: Mục đích & Phạm vi hợp tác</div>
+                        <p style={{ margin: '2px 0' }}>Bên B đảm nhiệm phát triển kinh doanh và phân phối các sản phẩm TPCN tiêu chuẩn Nhật Bản của Genki Fami tại địa bàn <strong>{territoryDescription}</strong>.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 2: Tiêu chuẩn sản phẩm & Nguồn gốc xuất xứ Nhật Bản</div>
+                        <p style={{ margin: '2px 0' }}>100% sản phẩm do Bên A cung ứng được nhập khẩu chính ngạch từ Nhật Bản, sản xuất tại nhà máy chuẩn GMP-JAPAN và có Giấy tiếp nhận đăng ký bản công bố sản phẩm của Cục An toàn Thực phẩm - Bộ Y Tế.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 3: Chế độ tài chính, Thù lao & Hạn mức công nợ</div>
+                        <p style={{ margin: '2px 0' }}>
+                          {templateId === 'TPL-HTKD' && `Thù lao cố định PCB: ${formatVND(salary)}/tháng; Phụ cấp phát triển thị trường PKT: ${formatVND(allowance)}/tháng. Tổng thu nhập định kỳ: ${formatVND(Number(salary) + Number(allowance))}/tháng.`}
+                          {templateId === 'TPL-HDNT' && `Mức chiết khấu đại lý: ${discountRate}%. Hạn mức nợ gối đầu: ${formatVND(firstOrderDebt)} thanh toán xoay vòng theo chu kỳ đặt hàng.`}
+                          {templateId === 'TPL-HDLD' && `Lương cơ bản đóng BHXH: ${formatVND(salary)}/tháng; Phụ cấp hiệu suất: ${formatVND(performanceBonus)}/tháng; Ăn trưa: ${formatVND(mealAllowance)}/tháng.`}
+                          {!['TPL-HTKD', 'TPL-HDNT', 'TPL-HDLD'].includes(templateId) && `Chế độ tài chính thực hiện theo quy chế thù lao và hạn mức được duyệt.`}
+                        </p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 4: Cơ chế thưởng doanh số bậc thang & Quản lý KPI</div>
+                        <p style={{ margin: '2px 0' }}>Chỉ tiêu doanh số định mức: <strong>{formatVND(kpiTargetRevenue)}/tháng</strong>. Thưởng bậc thang hàng tháng 1.0% - 4.0%; Thưởng đánh giá Quý <strong>{quarterBonusRate}%</strong> và Thưởng tổng kết Năm <strong>{yearBonusRate}%</strong> khi đạt & vượt định ngạch.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 5: Thời hạn hợp đồng & Quy trình gia hạn</div>
+                        <p style={{ margin: '2px 0' }}>Hợp đồng có hiệu lực từ ngày <strong>{formatDate(startDate)}</strong> đến hết ngày <strong>{formatDate(endDate)}</strong>. Trước khi hết hạn 30 ngày, hai bên sẽ tiến hành đánh giá để ký Phụ lục gia hạn hợp đồng.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 6: Quyền và nghĩa vụ của Bên A (Genki Fami)</div>
+                        <p style={{ margin: '2px 0' }}>Cung ứng đầy đủ hàng hóa đạt chuẩn, cung cấp tài liệu đào tạo chuyên sâu dược lý, hồ sơ pháp lý công bố và thanh toán thù lao/chiết khấu đúng kỳ thỏa thuận.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 7: Quyền và nghĩa vụ của Bên B (Đối tác/Nhân sự)</div>
+                        <p style={{ margin: '2px 0' }}>Tư vấn đúng kiến thức sản phẩm, không thần thánh hóa công dụng TPCN, tuân thủ tiêu chuẩn bảo quản dược phẩm GSP và chủ động mở rộng mạng lưới phân phối.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 8: Bảo mật thông tin & Sở hữu trí tuệ (NDA)</div>
+                        <p style={{ margin: '2px 0' }}>Bên B cam kết giữ bí mật tuyệt đối về cơ cấu giá, công thức sản phẩm, danh sách khách hàng và chiến lược kinh doanh của Genki Fami. Nghĩa vụ bảo mật kéo dài tối thiểu 02 năm sau khi thanh lý hợp đồng.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 9: Chống bán phá giá & Bảo vệ hệ thống đại lý</div>
+                        <p style={{ margin: '2px 0' }}>Nghiêm cấm hành vi bán dưới giá bán lẻ niêm yết do Genki Fami ban hành trên bất kỳ kênh phân phối trực tiếp hoặc sàn TMĐT (Shopee, TikTok Shop, Lazada). Vi phạm sẽ bị cắt thù lao và thanh lý hợp đồng ngay lập tức.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 10: Chấm dứt hợp đồng & Xử lý vi phạm</div>
+                        <p style={{ margin: '2px 0' }}>Hợp đồng chấm dứt khi hết thời hạn mà không gia hạn, hoặc do hai bên thỏa thuận. Bên đơn phương chấm dứt phải gửi thông báo trước 30 ngày và hoàn tất nghĩa vụ công nợ tồn đọng.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 11: Sự kiện bất khả kháng & Giải quyết tranh chấp</div>
+                        <p style={{ margin: '2px 0' }}>Mọi tranh chấp phát sinh được ưu tiên thương lượng hòa giải trên tinh thần hợp tác. Trường hợp không hòa giải được sẽ đưa ra Tòa án nhân dân có thẩm quyền tại TP. Hồ Chí Minh giải quyết.</p>
+                      </div>
+
+                      <div style={{ marginBottom: '10px' }}>
+                        <div style={{ fontWeight: 700, color: '#111827' }}>Điều 12: Điều khoản thi hành & Hiệu lực pháp lý</div>
+                        <p style={{ margin: '2px 0' }}>Hợp đồng này được lập thành 02 (hai) bản có giá trị pháp lý tương đương, mỗi bên giữ 01 (một) bản để thực hiện. Hợp đồng có hiệu lực kể từ ngày ký.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Signatures */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '28px', paddingTop: '10px' }}>
+                    <div style={{ textAlign: 'center', width: '45%' }}>
+                      <div style={{ fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>ĐẠI DIỆN BÊN A</div>
+                      <div style={{ fontSize: '10px', fontStyle: 'italic', color: '#64748b' }}>(Ký, ghi rõ họ tên và đóng dấu)</div>
+                      <div style={{ marginTop: '40px', fontWeight: 600, color: 'var(--stitch-primary)' }}>Tổng Giám Đốc</div>
+                    </div>
+                    <div style={{ textAlign: 'center', width: '45%' }}>
+                      <div style={{ fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>ĐẠI DIỆN BÊN B</div>
+                      <div style={{ fontSize: '10px', fontStyle: 'italic', color: '#64748b' }}>(Ký và ghi rõ họ tên)</div>
+                      <div style={{ marginTop: '40px', fontWeight: 600 }}>{selectedPersonForForm?.fullName || 'Người đại diện'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pre-flight bottom bar */}
+                <div style={{ padding: '12px 16px', background: '#fff', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    📄 Ước tính văn bản: 3 trang A4 chuẩn pháp lý
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => window.print()}
+                  >
+                    🖨️ In Thử / Xuất PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: DANH SÁCH HỢP ĐỒNG */}
       {activeContractTab === 'list' && (
