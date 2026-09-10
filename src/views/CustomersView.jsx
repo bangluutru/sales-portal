@@ -1,6 +1,26 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext.jsx';
-import { IconPlus, IconExternal, IconClose } from '../components/Icons.jsx';
+import {
+  IconPlus,
+  IconExternal,
+  IconClose,
+  IconCustomers,
+  IconSyncAlt,
+  IconPersonPin,
+  IconGroups,
+  IconFolderShared,
+  IconVerified,
+  IconCopy,
+  IconInventory,
+  IconEdit,
+  IconTrash,
+  IconCloudSync,
+  IconCloudUpload,
+  IconSync,
+  IconCheck,
+  IconSearch,
+  IconWarning
+} from '../components/Icons.jsx';
 import { validateVietnamTaxId, lookupVietnamTaxInfo } from '../utils/helpers.js';
 
 export default function CustomersView() {
@@ -12,6 +32,8 @@ export default function CustomersView() {
     people,
     currentPerson,
     addCustomer,
+    updateCustomer,
+    deleteCustomer,
     openQuickAction,
     setActiveTab
   } = useApp();
@@ -27,6 +49,14 @@ export default function CustomersView() {
   const [isSyncingCrm, setIsSyncingCrm] = useState(false);
   const [importCsvText, setImportCsvText] = useState('');
   const [importFeedback, setImportFeedback] = useState(null);
+
+  // States Sửa Khách Hàng
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [editTaxValidation, setEditTaxValidation] = useState(null);
+
+  // States Xóa Khách Hàng
+  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
 
   // Form states thêm khách hàng
   const [name, setName] = useState('');
@@ -293,6 +323,96 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
     setTaxValidationState(null);
   };
 
+  // ==================== CRUD: SỬA KHÁCH HÀNG ====================
+  const handleStartEdit = (customer) => {
+    setEditingCustomer({
+      ...customer,
+      taxNumber: customer.taxNumber || getCustomerTax(customer)
+    });
+    setEditTaxValidation(null);
+  };
+
+  const handleLookupEditTax = (val) => {
+    const targetTax = val || editingCustomer?.taxNumber;
+    if (!targetTax || targetTax.trim().length < 8) {
+      setEditTaxValidation({ message: 'Vui lòng nhập tối thiểu 10 chữ số mã số thuế.', valid: false });
+      return;
+    }
+    const validation = validateVietnamTaxId(targetTax);
+    const info = lookupVietnamTaxInfo(targetTax);
+
+    if (info) {
+      setEditingCustomer(prev => ({
+        ...prev,
+        name: prev.name || info.name,
+        address: prev.address || info.address,
+        contactPerson: prev.contactPerson || info.representative || prev.contactPerson
+      }));
+      setEditTaxValidation({
+        valid: true,
+        isEnterprise: true,
+        message: `✓ Đã khớp CSDL Tổng cục Thuế: ${info.name}`
+      });
+    } else if (validation.valid) {
+      setEditTaxValidation({
+        valid: true,
+        isEnterprise: false,
+        message: `✓ Mã số thuế đúng thuật toán kiểm tra (${validation.type})`
+      });
+    } else {
+      setEditTaxValidation({
+        valid: false,
+        message: '⚠️ Mã số thuế chưa đúng định dạng chuẩn 10 hoặc 13 số.'
+      });
+    }
+  };
+
+  const handleSaveEdit = (e) => {
+    e.preventDefault();
+    if (!editingCustomer || !editingCustomer.name.trim()) return;
+
+    updateCustomer(editingCustomer.id, {
+      name: editingCustomer.name.trim(),
+      taxNumber: editingCustomer.taxNumber,
+      customerType: editingCustomer.customerType,
+      region: editingCustomer.region,
+      address: editingCustomer.address,
+      contactPerson: editingCustomer.contactPerson,
+      phone: editingCustomer.phone,
+      email: editingCustomer.email,
+      ownerId: editingCustomer.ownerId,
+      notes: editingCustomer.notes,
+      externalSalesAppUrl: editingCustomer.externalSalesAppUrl
+    });
+
+    setCopyFeedback(`✓ Đã cập nhật hồ sơ "${editingCustomer.name}" thành công!`);
+    setTimeout(() => setCopyFeedback(null), 3000);
+    setEditingCustomer(null);
+  };
+
+  // ==================== CRUD: XÓA KHÁCH HÀNG ====================
+  const handleStartDelete = (customer) => {
+    setCustomerToDelete(customer);
+    setDeleteError('');
+  };
+
+  const handleConfirmDelete = () => {
+    if (!customerToDelete) return;
+    const res = deleteCustomer(customerToDelete.id);
+    if (!res.success) {
+      setDeleteError(res.reason);
+      return;
+    }
+    setCopyFeedback(`✓ Đã xóa khách hàng "${customerToDelete.name}" khỏi hệ thống.`);
+    setTimeout(() => setCopyFeedback(null), 3000);
+    if (selectedCustomerId === customerToDelete.id) {
+      const remaining = baseCustomers.filter(c => c.id !== customerToDelete.id);
+      setSelectedCustomerId(remaining[0]?.id || null);
+    }
+    setCustomerToDelete(null);
+    setDeleteError('');
+  };
+
   return (
     <div className="page-container">
       {/* Toast Feedback */}
@@ -307,9 +427,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '28px' }}>
-                storefront
-              </span>
+              <IconCustomers size={28} color="var(--stitch-primary)" />
               <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                 Khách Hàng Phụ Trách & Hồ Sơ Pháp Lý (Customer Operations)
               </h2>
@@ -334,7 +452,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
               title="Quản lý đồng bộ và xuất nhập dữ liệu CRM / Excel"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sync_alt</span>
+              <IconSyncAlt size={16} />
               <span>Đồng Bộ & Dữ Liệu CRM</span>
             </button>
             <button
@@ -360,7 +478,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
           <div className="stitch-kpi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Tôi trực tiếp quản lý</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--stitch-primary)' }}>person_pin</span>
+              <IconPersonPin size={18} color="var(--stitch-primary)" />
             </div>
             <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--stitch-primary)' }}>{myCustomersCount} đối tác</div>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Phụ trách chính</span>
@@ -369,7 +487,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
           <div className="stitch-kpi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Mạng lưới CTV phụ trách</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#4f46e5' }}>groups</span>
+              <IconGroups size={18} color="#4f46e5" />
             </div>
             <div style={{ fontSize: '22px', fontWeight: 800, color: '#4f46e5' }}>{ctvCustomersCount} đối tác</div>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Kênh cộng tác viên</span>
@@ -378,7 +496,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
           <div className="stitch-kpi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Hồ sơ Drive đã tạo</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-success)' }}>folder_shared</span>
+              <IconFolderShared size={18} color="var(--color-success)" />
             </div>
             <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--color-success)' }}>{driveDossierCount} thư mục</div>
             <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 600 }}>100% Đồng bộ cloud</span>
@@ -387,7 +505,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
           <div className="stitch-kpi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Xác thực MST Thuế</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#059669' }}>verified</span>
+              <IconVerified size={18} color="#059669" />
             </div>
             <div style={{ fontSize: '22px', fontWeight: 800, color: '#059669' }}>{taxVerifiedCount}/{baseCustomers.length} Đạt</div>
             <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>Đối soát thuật toán Thuế</span>
@@ -541,16 +659,40 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                             <small style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{c.phone}</small>
                           </td>
                           <td>
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              style={{ fontSize: '11.5px', padding: '3px 8px' }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedCustomerId(c.id);
-                              }}
-                            >
-                              Pháp lý &gt;
-                            </button>
+                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                style={{ fontSize: '11.5px', padding: '3px 8px' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCustomerId(c.id);
+                                }}
+                              >
+                                Pháp lý &gt;
+                              </button>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: '4px 6px', color: 'var(--text-secondary)' }}
+                                title="Chỉnh sửa hồ sơ khách hàng"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartEdit(c);
+                                }}
+                              >
+                                <IconEdit size={13} />
+                              </button>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: '4px 6px', color: 'var(--color-danger, #ef4444)' }}
+                                title="Xóa khách hàng"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartDelete(c);
+                                }}
+                              >
+                                <IconTrash size={13} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -667,12 +809,34 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
               {/* Big 1-Click Button: Copy All Billing Block */}
               <button
                 className="btn btn-primary"
-                style={{ width: '100%', marginBottom: '14px', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px' }}
+                style={{ width: '100%', marginBottom: '10px', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px' }}
                 onClick={handleCopyAllBilling}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>content_copy</span>
+                <IconCopy size={18} />
                 <span>Chép Toàn Bộ Thông Tin Xuất Hóa Đơn</span>
               </button>
+
+              {/* Quick Customer CRUD Controls */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 600 }}
+                  onClick={() => handleStartEdit(selectedCustomer)}
+                  title="Chỉnh sửa chi tiết thông tin khách hàng"
+                >
+                  <IconEdit size={14} />
+                  <span>Sửa Khách Hàng</span>
+                </button>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--color-danger, #ef4444)', fontWeight: 600 }}
+                  onClick={() => handleStartDelete(selectedCustomer)}
+                  title="Xóa khách hàng khỏi hệ thống"
+                >
+                  <IconTrash size={14} />
+                  <span>Xóa Khách Hàng</span>
+                </button>
+              </div>
 
               {/* Workflow Actions */}
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -681,7 +845,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                   style={{ textAlign: 'left', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px' }}
                   onClick={() => openQuickAction('SAMPLE')}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#4f46e5' }}>inventory_2</span>
+                  <IconInventory size={16} color="#4f46e5" />
                   <span>+ Đề xuất cấp mẫu thử Demo cho KH này</span>
                 </button>
 
@@ -690,7 +854,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                   style={{ textAlign: 'left', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px' }}
                   onClick={() => setActiveTab('contracts')}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--stitch-primary)' }}>edit_document</span>
+                  <IconEdit size={16} color="var(--stitch-primary)" />
                   <span>Soạn hợp đồng đại lý / hợp tác</span>
                 </button>
 
@@ -702,7 +866,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                     className="btn btn-secondary btn-sm"
                     style={{ textAlign: 'left', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px' }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
+                    <IconExternal size={16} />
                     <span>Mở app bán hàng CRM của đối tác</span>
                   </a>
                 )}
@@ -722,9 +886,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
           <div className="modal-container" style={{ maxWidth: '680px' }}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '24px' }}>
-                  cloud_sync
-                </span>
+                <IconCloudSync size={24} color="var(--stitch-primary)" />
                 <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>
                   Trung Tâm Dữ Liệu & Đồng Bộ Cloud CRM
                 </h3>
@@ -759,9 +921,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                     onClick={handleTriggerSync}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', animation: isSyncingCrm ? 'spin 1s linear infinite' : 'none' }}>
-                      sync
-                    </span>
+                    <IconSync size={16} className={isSyncingCrm ? 'spin' : ''} />
                     <span>{isSyncingCrm ? 'Đang kết nối và đồng bộ...' : '🚀 Đồng Bộ Ngay Với Cloud CRM'}</span>
                   </button>
                 </div>
@@ -780,9 +940,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                   onClick={handleExportCsv}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#059669' }}>
-                    download
-                  </span>
+                  <IconCloudSync size={16} color="#059669" />
                   <span>Tải Về Tệp CSV ({baseCustomers.length} đối tác)</span>
                 </button>
               </div>
@@ -816,9 +974,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                   onClick={handleImportCsv}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--stitch-primary)' }}>
-                    file_upload
-                  </span>
+                  <IconCloudUpload size={16} color="var(--stitch-primary)" />
                   <span>Nạp Dữ Liệu Vào Danh Bạ</span>
                 </button>
               </div>
@@ -870,7 +1026,7 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                       onClick={() => handleLookupTaxNumber(taxNumber)}
                       style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>search</span>
+                      <IconSearch size={16} />
                       <span>Tra cứu</span>
                     </button>
                   </div>
@@ -1008,6 +1164,237 @@ NGƯỜI LIÊN HỆ: ${selectedCustomer.contactPerson} - ${selectedCustomer.phon
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Sửa Khách Hàng (CRUD Update) */}
+      {editingCustomer && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <IconEdit size={20} color="var(--stitch-primary)" />
+                <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>
+                  Chỉnh Sửa Hồ Sơ Khách Hàng: {editingCustomer.name}
+                </h3>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setEditingCustomer(null)}>
+                <IconClose size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEdit}>
+              <div className="modal-body">
+                {/* MST with Lookup */}
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Mã Số Thuế (MST) *</span>
+                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Tra cứu Tổng cục Thuế</span>
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={editingCustomer.taxNumber || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setEditingCustomer(prev => ({ ...prev, taxNumber: val }));
+                        if (val.length >= 10) {
+                          handleLookupEditTax(val);
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => handleLookupEditTax(editingCustomer.taxNumber)}
+                      style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <IconSearch size={16} />
+                      <span>Tra cứu</span>
+                    </button>
+                  </div>
+                  {editTaxValidation && (
+                    <div style={{ marginTop: '6px', fontSize: '12px', fontWeight: 600, color: editTaxValidation.valid ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                      {editTaxValidation.message}
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Tên Nhà Thuốc / Doanh Nghiệp *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    required
+                    value={editingCustomer.name || ''}
+                    onChange={(e) => setEditingCustomer(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Loại Hình</label>
+                    <select
+                      className="form-select"
+                      value={editingCustomer.customerType || 'Nhà thuốc tư nhân'}
+                      onChange={(e) => setEditingCustomer(prev => ({ ...prev, customerType: e.target.value }))}
+                    >
+                      <option value="Nhà thuốc chuỗi">Nhà thuốc chuỗi</option>
+                      <option value="Nhà thuốc tư nhân">Nhà thuốc tư nhân</option>
+                      <option value="Phòng khám & Bệnh viện">Phòng khám & Bệnh viện</option>
+                      <option value="Spa & Wellness Center">Spa & Wellness Center</option>
+                      <option value="Đại lý phân phối">Đại lý phân phối</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Khu Vực *</label>
+                    <select
+                      className="form-select"
+                      value={editingCustomer.region || 'Miền Bắc'}
+                      onChange={(e) => setEditingCustomer(prev => ({ ...prev, region: e.target.value }))}
+                    >
+                      <option value="Miền Bắc">Miền Bắc</option>
+                      <option value="Miền Trung">Miền Trung</option>
+                      <option value="Miền Nam">Miền Nam</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Địa Chỉ Chi Tiết (Xuất Hóa Đơn GTGT) *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    required
+                    value={editingCustomer.address || ''}
+                    onChange={(e) => setEditingCustomer(prev => ({ ...prev, address: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Người Đại Diện / Dược Sĩ Liên Hệ</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={editingCustomer.contactPerson || ''}
+                      onChange={(e) => setEditingCustomer(prev => ({ ...prev, contactPerson: e.target.value }))}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Số Điện Thoại Liên Hệ</label>
+                    <input
+                      type="tel"
+                      className="form-input"
+                      value={editingCustomer.phone || ''}
+                      onChange={(e) => setEditingCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Email Nhận Hóa Đơn VAT</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      value={editingCustomer.email || ''}
+                      onChange={(e) => setEditingCustomer(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Nhân Sự Phụ Trách (Owner) *</label>
+                    <select
+                      className="form-select"
+                      value={editingCustomer.ownerId || ''}
+                      onChange={(e) => setEditingCustomer(prev => ({ ...prev, ownerId: e.target.value }))}
+                      disabled={!isAdmin}
+                    >
+                      {people.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.fullName} ({p.role} - {p.region})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Ghi Chú Hồ Sơ</label>
+                  <textarea
+                    className="form-textarea"
+                    rows={2}
+                    value={editingCustomer.notes || ''}
+                    onChange={(e) => setEditingCustomer(prev => ({ ...prev, notes: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingCustomer(null)}>
+                  Hủy
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Lưu Thay Đổi
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Xác Nhận Xóa Khách Hàng (CRUD Delete with Cascade Protection) */}
+      {customerToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-container" style={{ maxWidth: '480px' }}>
+            <div className="modal-header" style={{ borderBottomColor: 'rgba(239, 68, 68, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <IconWarning size={22} color="var(--color-danger, #ef4444)" />
+                <h3 style={{ fontSize: '17px', fontWeight: 700, margin: 0, color: 'var(--color-danger, #ef4444)' }}>
+                  Xác Nhận Xóa Khách Hàng
+                </h3>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setCustomerToDelete(null); setDeleteError(''); }}>
+                <IconClose size={16} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ fontSize: '13.5px', lineHeight: 1.5 }}>
+              <p style={{ marginTop: 0, color: 'var(--text-primary)' }}>
+                Bạn có chắc chắn muốn xóa khách hàng <strong>{customerToDelete.name}</strong> (Mã: <code>{customerToDelete.id}</code>) khỏi hệ thống?
+              </p>
+              <div style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: '6px', fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                Hệ thống sẽ kiểm tra và bảo vệ các dữ liệu ràng buộc (Hợp đồng, Doanh số, Lịch sử cấp mẫu).
+              </div>
+
+              {deleteError && (
+                <div style={{ marginTop: '12px', padding: '10px 14px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '6px', color: '#991b1b', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                  <IconWarning size={18} color="#991b1b" />
+                  <div>{deleteError}</div>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => { setCustomerToDelete(null); setDeleteError(''); }}
+              >
+                Hủy Bỏ
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                style={{ background: 'var(--color-danger, #ef4444)', color: '#fff', border: 'none' }}
+                onClick={handleConfirmDelete}
+              >
+                Xác Nhận Xóa
+              </button>
+            </div>
           </div>
         </div>
       )}

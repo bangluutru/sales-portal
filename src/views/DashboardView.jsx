@@ -3,6 +3,48 @@ import { useApp } from '../context/AppContext.jsx';
 import { REQUEST_TYPES, ROLES } from '../utils/constants.js';
 import { formatVND, formatDate } from '../utils/helpers.js';
 import StatusBadge from '../components/StatusBadge.jsx';
+import {
+  IconPlus,
+  IconSearch,
+  IconFolderOpen,
+  IconFolderShared,
+  IconExternal,
+  IconInsights,
+  IconArrowRight,
+  IconFlight,
+  IconPayment,
+  IconReceipt,
+  IconDollar,
+  IconInventory,
+  IconTruck,
+  IconHourglass,
+  IconWarning,
+  IconCheckCircle,
+  IconFactCheck,
+  IconClock,
+  IconSync,
+  IconEye,
+  IconPrint,
+  IconDocumentAdd,
+  IconCloudUpload,
+  IconContracts,
+  IconInfo,
+  IconClose
+} from '../components/Icons.jsx';
+
+// Ánh xạ icon SVG theo loại đề xuất nghiệp vụ
+const renderRequestTypeIcon = (type) => {
+  switch (type) {
+    case 'BUSINESS_TRIP':
+      return <IconFlight size={16} />;
+    case 'PAYMENT':
+      return <IconReceipt size={16} />;
+    case 'SAMPLE':
+      return <IconInventory size={16} />;
+    default:
+      return <IconContracts size={16} />;
+  }
+};
 
 export default function DashboardView() {
   const {
@@ -121,9 +163,9 @@ export default function DashboardView() {
             className="stitch-crm-btn"
             title="Mở hệ thống CRM công ty"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>insights</span>
+            <IconInsights size={18} />
             <span>Mở hệ thống CRM công ty (Xem lịch sử giao dịch & doanh số)</span>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px', opacity: 0.7 }}>open_in_new</span>
+            <IconExternal size={14} />
           </a>
         </div>
       </div>
@@ -136,17 +178,19 @@ export default function DashboardView() {
           className="stitch-action-card primary"
           onClick={() => setActiveTab('contracts')}
         >
-          <span className="material-symbols-outlined stitch-watermark-icon">description</span>
+          <div className="stitch-watermark-svg">
+            <IconContracts size={88} />
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 2 }}>
             <div className="stitch-action-icon-badge">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>post_add</span>
+              <IconDocumentAdd size={22} />
             </div>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', opacity: 0.8 }}>arrow_forward</span>
+            <IconArrowRight size={18} />
           </div>
           <div style={{ zIndex: 2 }}>
             <div className="stitch-action-title">Tạo nhanh hợp đồng theo mẫu</div>
             <div className="stitch-action-subtitle">
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>cloud_upload</span>
+              <IconCloudUpload size={14} />
               <span>Xuất bản nháp & tự động lưu Google Drive</span>
             </div>
           </div>
@@ -158,17 +202,23 @@ export default function DashboardView() {
           className="stitch-action-card surface"
           onClick={() => openQuickAction('BUSINESS_TRIP')}
         >
-          <span className="material-symbols-outlined stitch-watermark-icon">flight_takeoff</span>
+          <div className="stitch-watermark-svg">
+            <IconFlight size={88} />
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 2 }}>
             <div className="stitch-action-icon-badge purple">
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>flight_takeoff</span>
+              <IconFlight size={22} />
             </div>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--stitch-outline)' }}>arrow_forward</span>
+            <span style={{ color: 'var(--stitch-outline)' }}>
+              <IconArrowRight size={18} />
+            </span>
           </div>
           <div style={{ zIndex: 2 }}>
             <div className="stitch-action-title">Tạo đề nghị công tác</div>
             <div className="stitch-action-subtitle">
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--stitch-tertiary)' }}>payments</span>
+              <span style={{ color: 'var(--stitch-tertiary)', display: 'inline-flex' }}>
+                <IconPayment size={14} />
+              </span>
               <span>Kèm xin hạn mức tạm ứng đi đường</span>
             </div>
           </div>
@@ -180,17 +230,23 @@ export default function DashboardView() {
           className="stitch-action-card surface"
           onClick={() => openQuickAction('PAYMENT')}
         >
-          <span className="material-symbols-outlined stitch-watermark-icon">receipt_long</span>
+          <div className="stitch-watermark-svg">
+            <IconReceipt size={88} />
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 2 }}>
             <div className="stitch-action-icon-badge blue">
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>receipt_long</span>
+              <IconReceipt size={22} />
             </div>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--stitch-outline)' }}>arrow_forward</span>
+            <span style={{ color: 'var(--stitch-outline)' }}>
+              <IconArrowRight size={18} />
+            </span>
           </div>
           <div style={{ zIndex: 2 }}>
             <div className="stitch-action-title">Tạo đề nghị thanh toán / Hoàn ứng</div>
             <div className="stitch-action-subtitle">
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--stitch-secondary)' }}>attach_money</span>
+              <span style={{ color: 'var(--stitch-secondary)', display: 'inline-flex' }}>
+                <IconDollar size={14} />
+              </span>
               <span>Chi phí tiếp khách, hoàn ứng công tác</span>
             </div>
           </div>
@@ -202,17 +258,23 @@ export default function DashboardView() {
           className="stitch-action-card surface"
           onClick={() => openQuickAction('SAMPLE')}
         >
-          <span className="material-symbols-outlined stitch-watermark-icon">inventory_2</span>
+          <div className="stitch-watermark-svg">
+            <IconInventory size={88} />
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 2 }}>
             <div className="stitch-action-icon-badge slate">
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>inventory_2</span>
+              <IconInventory size={22} />
             </div>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--stitch-outline)' }}>arrow_forward</span>
+            <span style={{ color: 'var(--stitch-outline)' }}>
+              <IconArrowRight size={18} />
+            </span>
           </div>
           <div style={{ zIndex: 2 }}>
             <div className="stitch-action-title">Tạo đề nghị xuất hàng mẫu</div>
             <div className="stitch-action-subtitle">
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--stitch-primary)' }}>local_shipping</span>
+              <span style={{ color: 'var(--stitch-primary)', display: 'inline-flex' }}>
+                <IconTruck size={14} />
+              </span>
               <span>Yêu cầu xuất kho gửi mẫu cho khách</span>
             </div>
           </div>
@@ -225,7 +287,7 @@ export default function DashboardView() {
         <div className="stitch-kpi-card">
           <div className="stitch-kpi-main">
             <div className="stitch-kpi-icon amber">
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>hourglass_top</span>
+              <IconHourglass size={22} />
             </div>
             <div>
               <div className="stitch-kpi-label">Đang chờ duyệt</div>
@@ -241,7 +303,7 @@ export default function DashboardView() {
         <div className="stitch-kpi-card">
           <div className="stitch-kpi-main">
             <div className="stitch-kpi-icon rose">
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>warning</span>
+              <IconWarning size={22} />
             </div>
             <div>
               <div className="stitch-kpi-label">Cần bổ sung chứng từ</div>
@@ -263,7 +325,7 @@ export default function DashboardView() {
         <div className="stitch-kpi-card">
           <div className="stitch-kpi-main">
             <div className="stitch-kpi-icon emerald">
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>task_alt</span>
+              <IconCheckCircle size={22} />
             </div>
             <div>
               <div className="stitch-kpi-label">Đã duyệt chờ chi / xuất</div>
@@ -279,7 +341,7 @@ export default function DashboardView() {
         <div className="stitch-kpi-card">
           <div className="stitch-kpi-main">
             <div className="stitch-kpi-icon indigo">
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>quick_reference_all</span>
+              <IconFactCheck size={22} />
             </div>
             <div>
               <div className="stitch-kpi-label">Hợp đồng nháp vừa sinh</div>
@@ -305,7 +367,9 @@ export default function DashboardView() {
         <div className="stitch-card">
           <div className="stitch-card-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '20px' }}>history_toggle_off</span>
+              <span style={{ color: 'var(--stitch-primary)', display: 'flex', alignItems: 'center' }}>
+                <IconClock size={19} />
+              </span>
               <span style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>Các đề nghị gần nhất của tôi</span>
               <span style={{ padding: '2px 8px', borderRadius: '9999px', background: 'var(--stitch-surface-container)', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '600' }}>
                 Tổng: {displayRequests.length} phiếu
@@ -330,8 +394,8 @@ export default function DashboardView() {
                     width: '160px'
                   }}
                 />
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '7px', top: '7px', fontSize: '16px', color: 'var(--stitch-outline)' }}>
-                  filter_alt
+                <span style={{ position: 'absolute', left: '8px', top: '9px', color: 'var(--stitch-outline)', pointerEvents: 'none', display: 'flex' }}>
+                  <IconSearch size={14} />
                 </span>
               </div>
               <button
@@ -351,7 +415,7 @@ export default function DashboardView() {
                   cursor: 'pointer'
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>refresh</span>
+                <IconSync size={14} />
                 <span>Làm mới</span>
               </button>
             </div>
@@ -380,8 +444,8 @@ export default function DashboardView() {
                     <tr key={req.id} className={isAttention ? 'row-attention' : ''}>
                       <td className="stitch-code-num">{req.requestCode}</td>
                       <td>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: '500', color: meta.color }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{meta.icon}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '500', color: meta.color }}>
+                          {renderRequestTypeIcon(req.requestType)}
                           <span>{meta.label}</span>
                         </span>
                       </td>
@@ -419,7 +483,7 @@ export default function DashboardView() {
                               setActiveTab('operations');
                             }}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>visibility</span>
+                            <IconEye size={15} />
                           </button>
                           <button
                             type="button"
@@ -430,7 +494,7 @@ export default function DashboardView() {
                               setActiveTab('operations');
                             }}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>print</span>
+                            <IconPrint size={15} />
                           </button>
                         </div>
                       </td>
@@ -459,10 +523,14 @@ export default function DashboardView() {
           <div className="stitch-card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '22px' }}>folder_shared</span>
+                <span style={{ color: 'var(--stitch-primary)', display: 'flex' }}>
+                  <IconFolderShared size={20} />
+                </span>
                 <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>Thư mục Google Drive liên kết</h2>
               </div>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--stitch-outline)' }}>sync</span>
+              <span style={{ color: 'var(--stitch-outline)', display: 'flex' }}>
+                <IconSync size={16} />
+              </span>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: 1.4 }}>
               Liên kết trực tiếp tới kho tài nguyên chuẩn của doanh nghiệp. Tự động đồng bộ quyền theo tài khoản @company.vn.
@@ -476,13 +544,15 @@ export default function DashboardView() {
                 className="stitch-drive-item"
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span className="material-symbols-outlined" style={{ color: '#ea4335', fontSize: '20px' }}>folder</span>
+                  <span style={{ color: '#ea4335', display: 'flex' }}>
+                    <IconFolderOpen size={20} />
+                  </span>
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Biểu mẫu & Quy chế tài chính</div>
                     <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Cập nhật: 3 ngày trước • 12 tệp tin</div>
                   </div>
                 </div>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--stitch-outline)' }}>open_in_new</span>
+                <IconExternal size={14} style={{ color: 'var(--stitch-outline)' }} />
               </a>
 
               <a
@@ -492,13 +562,15 @@ export default function DashboardView() {
                 className="stitch-drive-item"
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span className="material-symbols-outlined" style={{ color: '#4285f4', fontSize: '20px' }}>folder</span>
+                  <span style={{ color: '#4285f4', display: 'flex' }}>
+                    <IconFolderOpen size={20} />
+                  </span>
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Mẫu Hợp đồng Pháp lý 2025</div>
                     <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Đã ký số • 8 hợp đồng mẫu</div>
                   </div>
                 </div>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--stitch-outline)' }}>open_in_new</span>
+                <IconExternal size={14} style={{ color: 'var(--stitch-outline)' }} />
               </a>
 
               <a
@@ -508,13 +580,15 @@ export default function DashboardView() {
                 className="stitch-drive-item"
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span className="material-symbols-outlined" style={{ color: '#34a853', fontSize: '20px' }}>folder</span>
+                  <span style={{ color: '#34a853', display: 'flex' }}>
+                    <IconFolderOpen size={20} />
+                  </span>
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Hồ sơ Khách hàng & Đại lý</div>
                     <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Phân vùng Miền Bắc & Nam</div>
                   </div>
                 </div>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--stitch-outline)' }}>open_in_new</span>
+                <IconExternal size={14} style={{ color: 'var(--stitch-outline)' }} />
               </a>
               {/* Personal Pinned Folders */}
               {pinnedFolders && pinnedFolders.length > 0 && (
@@ -534,7 +608,9 @@ export default function DashboardView() {
                         rel="noopener noreferrer"
                         style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}
                       >
-                        <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '20px' }}>folder_shared</span>
+                        <span style={{ color: 'var(--stitch-primary)', display: 'flex' }}>
+                          <IconFolderShared size={20} />
+                        </span>
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{folder.name}</div>
                           <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{folder.note || 'Lối tắt cá nhân'}</div>
@@ -559,7 +635,7 @@ export default function DashboardView() {
               style={{ width: '100%', marginTop: '14px', padding: '9px', borderRadius: '6px', border: '1px dashed var(--stitch-outline)', backgroundColor: 'transparent', color: 'var(--stitch-primary)', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               onClick={() => setPinModalOpen(true)}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+              <IconPlus size={16} />
               <span>Ghim thêm thư mục cá nhân</span>
             </button>
           </div>
@@ -567,7 +643,9 @@ export default function DashboardView() {
           {/* Desk Guidelines Card */}
           <div className="stitch-card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '20px' }}>lightbulb</span>
+              <span style={{ color: 'var(--stitch-primary)', display: 'flex' }}>
+                <IconInfo size={20} />
+              </span>
               <h3 style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Quy chuẩn Bàn làm việc</h3>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

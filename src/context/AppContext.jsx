@@ -373,6 +373,29 @@ export function AppProvider({ children }) {
     setCustomers(prev => prev.map(c => c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c));
   };
 
+  const deleteCustomer = (id) => {
+    const cust = customers.find(c => c.id === id);
+    if (!cust) return { success: false, reason: 'Không tìm thấy thông tin khách hàng.' };
+
+    // Kiểm tra xem khách hàng có hợp đồng liên kết không
+    const linkedContracts = contracts.filter(c => c.customerId === id || (cust.name && c.partyBName === cust.name));
+    if (linkedContracts.length > 0) {
+      return {
+        success: false,
+        reason: `Không thể xóa khách hàng "${cust.name}" vì đang có ${linkedContracts.length} hợp đồng liên kết trong hệ thống!`
+      };
+    }
+
+    setCustomers(prev => prev.filter(c => c.id !== id));
+    addNotification({
+      title: 'Đã xóa khách hàng',
+      message: `Đã xóa khách hàng "${cust.name}" (${id}) khỏi hệ thống.`,
+      type: 'CUSTOMER',
+      linkTab: 'customers'
+    });
+    return { success: true };
+  };
+
   // ==================== THAO TÁC VỚI HỢP ĐỒNG / CONTRACT ====================
   const addContract = (newContract) => {
     const id = newContract.id || generateSafeId('CTR-2026-', contracts, 4);
@@ -424,6 +447,30 @@ export function AppProvider({ children }) {
       }
       return c;
     }));
+  };
+
+  const deleteContract = (contractId) => {
+    const target = contracts.find(c => c.id === contractId);
+    if (!target) return { success: false, reason: 'Không tìm thấy hợp đồng.' };
+
+    if (target.status !== 'DRAFT' && target.status !== 'REJECTED') {
+      return {
+        success: false,
+        reason: 'Chỉ được phép xóa hợp đồng ở trạng thái Bản thảo (DRAFT) hoặc Bị từ chối (REJECTED)!'
+      };
+    }
+
+    setContracts(prev => prev.filter(c => c.id !== contractId));
+    if (selectedContractId === contractId) {
+      setSelectedContractId(null);
+    }
+    addNotification({
+      title: 'Đã xóa hợp đồng',
+      message: `Đã xóa hợp đồng ${target.contractCode || contractId} khỏi hệ thống.`,
+      type: 'CONTRACT',
+      linkTab: 'contracts'
+    });
+    return { success: true };
   };
 
   // ==================== THAO TÁC VỚI ĐỀ NGHỊ / REQUEST ====================
@@ -534,6 +581,56 @@ export function AppProvider({ children }) {
         timeline: [...(r.timeline || []), timelineEvent]
       };
     }));
+  };
+
+  const updateRequest = (requestId, updates) => {
+    const target = requests.find(r => r.id === requestId);
+    if (!target) return { success: false, reason: 'Không tìm thấy đề xuất.' };
+
+    if (target.status === 'APPROVED' || target.status === 'COMPLETED') {
+      return { success: false, reason: 'Đề xuất đã được duyệt hoặc hoàn tất, không thể chỉnh sửa nội dung!' };
+    }
+
+    setRequests(prev => prev.map(r => {
+      if (r.id === requestId) {
+        return {
+          ...r,
+          ...updates,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+
+    addNotification({
+      title: 'Cập nhật đề xuất',
+      message: `Đã cập nhật nội dung đề xuất ${target.requestCode || target.id}.`,
+      type: 'REQUEST',
+      linkTab: 'operations'
+    });
+    return { success: true };
+  };
+
+  const deleteRequest = (requestId) => {
+    const target = requests.find(r => r.id === requestId);
+    if (!target) return { success: false, reason: 'Không tìm thấy đề xuất.' };
+
+    if (target.status === 'APPROVED' || target.status === 'COMPLETED') {
+      return { success: false, reason: 'Đề xuất đã được phê duyệt, không thể hủy hoặc xóa!' };
+    }
+
+    setRequests(prev => prev.filter(r => r.id !== requestId));
+    if (selectedRequestId === requestId) {
+      setSelectedRequestId(null);
+    }
+
+    addNotification({
+      title: 'Hủy / Xóa đề xuất',
+      message: `Đã hủy bỏ đề xuất ${target.requestCode || target.id}.`,
+      type: 'REQUEST',
+      linkTab: 'operations'
+    });
+    return { success: true };
   };
 
   // ==================== HỆ THỐNG SAO LƯU & PHỤC HỒI DỮ LIỆU DỰ PHÒNG ====================
@@ -803,7 +900,7 @@ export function AppProvider({ children }) {
       quickActionInitialType,
       openQuickAction,
 
-      // Entity Actions
+      // Entity Actions (Full CRUD)
       addPerson,
       updatePerson,
       invitePerson,
@@ -811,10 +908,14 @@ export function AppProvider({ children }) {
       togglePersonStatus,
       addCustomer,
       updateCustomer,
+      deleteCustomer,
       addContract,
       updateContract,
       updateContractStatus,
+      deleteContract,
       addRequest,
+      updateRequest,
+      deleteRequest,
       updateRequestAction,
       resetToFactoryDefault,
 

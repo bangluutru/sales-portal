@@ -5,7 +5,22 @@ import { formatVND, formatDate } from '../utils/helpers.js';
 import StatusBadge from '../components/StatusBadge.jsx';
 import DriveLinkButton from '../components/DriveLinkButton.jsx';
 import WorkflowTimeline from '../components/WorkflowTimeline.jsx';
-import { IconPlus, IconClose, IconExternal } from '../components/Icons.jsx';
+import {
+  IconPlus,
+  IconClose,
+  IconExternal,
+  IconPayment,
+  IconClock,
+  IconFactCheck,
+  IconVerified,
+  IconInventory,
+  IconApproval,
+  IconFileText,
+  IconSupport,
+  IconEdit,
+  IconTrash,
+  IconWarning
+} from '../components/Icons.jsx';
 import { TRAVEL_FORM_TEMPLATES, TRAVEL_FORM_TYPES } from '../utils/travelFormsConstants.js';
 import TravelFormMiniDocEditor from '../components/TravelFormMiniDocEditor.jsx';
 import { exportTravelFormToDocx } from '../utils/travelDocxGenerator.js';
@@ -21,6 +36,8 @@ export default function OperationsView() {
     selectedRequestId,
     setSelectedRequestId,
     updateRequestAction,
+    updateRequest,
+    deleteRequest,
     isAdmin,
     scopedRequests
   } = useApp();
@@ -35,7 +52,46 @@ export default function OperationsView() {
   const [stampModalOpen, setStampModalOpen] = useState(false);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
 
+  // States Sửa & Hủy Đề Xuất
+  const [editingRequest, setEditingRequest] = useState(null);
+  const [requestToDelete, setRequestToDelete] = useState(null);
+
   const role = currentPerson.role;
+
+  const handleStartEditRequest = (req) => {
+    setEditingRequest({
+      ...req,
+      amount: req.amount || 0,
+      title: req.title || '',
+      description: req.description || '',
+      notes: req.notes || ''
+    });
+  };
+
+  const handleSaveEditRequest = (e) => {
+    e.preventDefault();
+    if (!editingRequest || !editingRequest.title.trim()) return;
+    updateRequest(editingRequest.id, {
+      title: editingRequest.title.trim(),
+      amount: Number(editingRequest.amount) || 0,
+      description: editingRequest.description,
+      notes: editingRequest.notes
+    });
+    setEditingRequest(null);
+  };
+
+  const handleStartDeleteRequest = (req) => {
+    setRequestToDelete(req);
+  };
+
+  const handleConfirmDeleteRequest = () => {
+    if (!requestToDelete) return;
+    deleteRequest(requestToDelete.id);
+    if (selectedRequestId === requestToDelete.id) {
+      setSelectedRequestId(null);
+    }
+    setRequestToDelete(null);
+  };
 
   const [categoryTab, setCategoryTab] = useState('ALL'); // 'ALL' | 'TRIP_ADVANCE' | 'PAYMENT_SETTLE' | 'SAMPLE_ONLY'
 
@@ -190,9 +246,7 @@ export default function OperationsView() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '28px' }}>
-                account_balance
-              </span>
+              <IconPayment size={28} color="var(--stitch-primary)" />
               <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                 Trung Tâm Nghiệp Vụ & Đề Xuất (Operations Center)
               </h2>
@@ -214,7 +268,7 @@ export default function OperationsView() {
           <div className="stitch-kpi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Chờ TBP duyệt</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#b45309' }}>schedule</span>
+              <IconClock size={18} color="#b45309" />
             </div>
             <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)' }}>{pendingManagerCount}</div>
             <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>Cần phê duyệt sơ bộ</span>
@@ -223,7 +277,7 @@ export default function OperationsView() {
           <div className="stitch-kpi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Kế toán soát xét</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--stitch-primary)' }}>fact_check</span>
+              <IconFactCheck size={18} color="var(--stitch-primary)" />
             </div>
             <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--stitch-primary)' }}>{pendingAccountingCount}</div>
             <span style={{ fontSize: '11px', color: 'var(--stitch-primary)', fontWeight: 600 }}>Kiểm tra hóa đơn & thuế</span>
@@ -232,7 +286,7 @@ export default function OperationsView() {
           <div className="stitch-kpi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>BGĐ duyệt chi</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-success)' }}>verified</span>
+              <IconVerified size={18} color="var(--color-success)" />
             </div>
             <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-success)' }}>{approvedDirectorCount}</div>
             <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 600 }}>Sẵn sàng giải ngân</span>
@@ -241,7 +295,7 @@ export default function OperationsView() {
           <div className="stitch-kpi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Mẫu thử lưu kho</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#4f46e5' }}>inventory_2</span>
+              <IconInventory size={18} color="#4f46e5" />
             </div>
             <div style={{ fontSize: '24px', fontWeight: 800, color: '#4f46e5' }}>{sampleCount}</div>
             <span style={{ fontSize: '11px', color: '#4f46e5', fontWeight: 600 }}>Đơn demo phòng khám</span>
@@ -280,7 +334,7 @@ export default function OperationsView() {
           onClick={() => setMainTab('WORKFLOW')}
           style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>approval_delegation</span>
+          <IconApproval size={18} />
           <span>Quản Lý Đề Nghị & Phê Duyệt ({filteredRequests.length})</span>
         </button>
         <button
@@ -288,7 +342,7 @@ export default function OperationsView() {
           onClick={() => setMainTab('TRAVEL_FORMS')}
           style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>description</span>
+          <IconFileText size={18} />
           <span>Kho Biểu Mẫu Công Tác (Nghị Định 30)</span>
           <span className="badge badge-accent" style={{ fontSize: '11px', padding: '2px 7px' }}>
             6 Mẫu Ngang & Dọc
@@ -477,12 +531,40 @@ export default function OperationsView() {
                             </td>
                             <td>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <button
-                                  className="btn btn-secondary btn-sm"
-                                  onClick={() => setSelectedRequestId(r.id)}
-                                >
-                                  Chi Tiết
-                                </button>
+                                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                  <button
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={() => setSelectedRequestId(r.id)}
+                                  >
+                                    Chi Tiết
+                                  </button>
+                                  {(r.status === 'SUBMITTED' || r.status === 'MANAGER_REVIEW' || r.status === 'REVISION_REQUESTED' || isAdmin) && (
+                                    <>
+                                      <button
+                                        className="btn btn-secondary btn-sm"
+                                        style={{ padding: '3px 6px', color: 'var(--text-secondary)' }}
+                                        title="Chỉnh sửa đề xuất"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleStartEditRequest(r);
+                                        }}
+                                      >
+                                        <IconEdit size={13} />
+                                      </button>
+                                      <button
+                                        className="btn btn-secondary btn-sm"
+                                        style={{ padding: '3px 6px', color: 'var(--color-danger, #ef4444)' }}
+                                        title="Hủy / Xóa đề xuất"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleStartDeleteRequest(r);
+                                        }}
+                                      >
+                                        <IconTrash size={13} />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
                                 {['BUSINESS_TRIP', 'ADVANCE', 'SETTLEMENT', 'PAYMENT'].includes(r.requestType) && (
                                   <button
                                     className="btn btn-secondary btn-sm"
@@ -517,9 +599,7 @@ export default function OperationsView() {
             {/* Card 1: Settlement Cycle Tracker */}
             <div className="card" style={{ marginBottom: '16px', background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(30, 64, 175, 0.02) 100%)', border: '1px solid var(--stitch-primary-light)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '22px' }}>
-                  event_upcoming
-                </span>
+                <IconClock size={22} color="var(--stitch-primary)" />
                 <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Kỳ Chốt Sổ & Chi Trả Tuần Này
                 </h4>
@@ -540,9 +620,7 @@ export default function OperationsView() {
             {/* Card 2: Accounting Golden Rules */}
             <div className="card" style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '20px' }}>
-                  rule
-                </span>
+                <IconFactCheck size={20} color="var(--stitch-primary)" />
                 <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700 }}>
                   Quy Chuẩn Kế Toán Hợp Lệ
                 </h4>
@@ -578,9 +656,7 @@ export default function OperationsView() {
             {/* Card 3: Accountant Officer Contact */}
             <div className="card" style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '20px' }}>
-                  support_agent
-                </span>
+                <IconSupport size={20} color="var(--stitch-primary)" />
                 <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700 }}>
                   Đầu Mối Kế Toán Phụ Trách
                 </h4>
@@ -1095,7 +1171,29 @@ export default function OperationsView() {
               )}
             </div>
 
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {(selectedRequest.status === 'SUBMITTED' || selectedRequest.status === 'MANAGER_REVIEW' || selectedRequest.status === 'REVISION_REQUESTED' || isAdmin) && (
+                  <>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => handleStartEditRequest(selectedRequest)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <IconEdit size={14} />
+                      <span>Sửa Đề Xuất</span>
+                    </button>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => handleStartDeleteRequest(selectedRequest)}
+                      style={{ color: 'var(--color-danger, #ef4444)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <IconTrash size={14} />
+                      <span>Hủy / Xóa Đề Xuất</span>
+                    </button>
+                  </>
+                )}
+              </div>
               <button className="btn btn-secondary" onClick={() => setSelectedRequestId(null)}>
                 Đóng
               </button>
@@ -1110,7 +1208,7 @@ export default function OperationsView() {
           <div style={{ background: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '480px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="material-symbols-outlined" style={{ color: '#16a34a', fontSize: '24px' }}>verified</span>
+                <IconVerified size={24} color="#16a34a" />
                 <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--gf-ink)' }}>
                   Xác Nhận Ký Duyệt Số Điện Tử
                 </h3>
@@ -1184,7 +1282,7 @@ export default function OperationsView() {
           <div style={{ background: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '460px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '24px' }}>contact_support</span>
+                <IconSupport size={24} color="var(--stitch-primary)" />
                 <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--gf-ink)' }}>
                   Đầu Mối Hỗ Trợ Kế Toán & Hotline Nội Bộ
                 </h3>
@@ -1228,6 +1326,128 @@ export default function OperationsView() {
                 onClick={() => setSupportModalOpen(false)}
               >
                 Đã Hiểu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL SỬA NỘI DUNG ĐỀ XUẤT (CRUD UPDATE) */}
+      {editingRequest && (
+        <div className="modal-overlay">
+          <div className="modal-container" style={{ maxWidth: '540px' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <IconEdit size={20} color="var(--stitch-primary)" />
+                <h3 style={{ fontSize: '17px', fontWeight: 700, margin: 0 }}>
+                  Chỉnh Sửa Đề Xuất: {editingRequest.requestCode}
+                </h3>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setEditingRequest(null)}>
+                <IconClose size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditRequest}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Tiêu Đề Đề Xuất *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    required
+                    value={editingRequest.title}
+                    onChange={(e) => setEditingRequest(prev => ({ ...prev, title: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Kinh Phí Dự Kiến (VNĐ)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="0"
+                    step="1000"
+                    value={editingRequest.amount}
+                    onChange={(e) => setEditingRequest(prev => ({ ...prev, amount: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Mô Tả / Nội Dung Chi Tiết</label>
+                  <textarea
+                    className="form-textarea"
+                    rows={3}
+                    value={editingRequest.description}
+                    onChange={(e) => setEditingRequest(prev => ({ ...prev, description: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Ghi Chú Giải Trình Bổ Sung</label>
+                  <textarea
+                    className="form-textarea"
+                    rows={2}
+                    placeholder="Giải trình bổ sung cho Quản lý / Kế toán..."
+                    value={editingRequest.notes || ''}
+                    onChange={(e) => setEditingRequest(prev => ({ ...prev, notes: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingRequest(null)}>
+                  Hủy Bỏ
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Lưu Thay Đổi
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL XÁC NHẬN HỦY / XÓA ĐỀ XUẤT (CRUD DELETE) */}
+      {requestToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-container" style={{ maxWidth: '460px' }}>
+            <div className="modal-header" style={{ borderBottomColor: 'rgba(239, 68, 68, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <IconWarning size={22} color="var(--color-danger, #ef4444)" />
+                <h3 style={{ fontSize: '17px', fontWeight: 700, margin: 0, color: 'var(--color-danger, #ef4444)' }}>
+                  Xác Nhận Hủy / Xóa Đề Xuất
+                </h3>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setRequestToDelete(null)}>
+                <IconClose size={16} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ fontSize: '13.5px', lineHeight: 1.5 }}>
+              <p style={{ marginTop: 0, color: 'var(--text-primary)' }}>
+                Bạn có chắc chắn muốn hủy / xóa đề xuất <strong>{requestToDelete.requestCode}</strong> ({requestToDelete.title})?
+              </p>
+              <div style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: '6px', fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                Thao tác này sẽ gỡ bỏ đề xuất khỏi hàng đợi phê duyệt của cấp Quản lý và Kế toán.
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setRequestToDelete(null)}
+              >
+                Giữ Lại
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                style={{ background: 'var(--color-danger, #ef4444)', color: '#fff', border: 'none' }}
+                onClick={handleConfirmDeleteRequest}
+              >
+                Xác Nhận Hủy Đề Xuất
               </button>
             </div>
           </div>

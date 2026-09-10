@@ -1,7 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext.jsx';
 import { ROLES } from '../utils/constants.js';
-import { IconPlus } from './Icons.jsx';
+import {
+  IconPlus,
+  IconSearch,
+  IconFolderOpen,
+  IconBell,
+  IconChevronDown,
+  IconUser,
+  IconClose
+} from './Icons.jsx';
 
 export default function Header({ title }) {
   const {
@@ -32,6 +40,10 @@ export default function Header({ title }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifContainerRef = useRef(null);
 
+  // Role Selector Dropdown state
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const roleContainerRef = useRef(null);
+
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(e) {
@@ -40,6 +52,9 @@ export default function Header({ title }) {
       }
       if (notifContainerRef.current && !notifContainerRef.current.contains(e.target)) {
         setNotifOpen(false);
+      }
+      if (roleContainerRef.current && !roleContainerRef.current.contains(e.target)) {
+        setRoleDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -122,9 +137,9 @@ export default function Header({ title }) {
       {/* Search Input Bar with Instant Results Dropdown */}
       <div ref={searchContainerRef} style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, maxWidth: '480px', position: 'relative' }}>
         <div style={{ position: 'relative', width: '100%' }}>
-          <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px', color: 'var(--stitch-outline)' }}>
-            search
-          </span>
+          <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', color: 'var(--stitch-outline)', pointerEvents: 'none' }}>
+            <IconSearch size={18} />
+          </div>
           <input
             type="search"
             placeholder="Tìm nhanh mã khách, số phiếu đề xuất, hợp đồng, nhân sự..."
@@ -330,35 +345,61 @@ export default function Header({ title }) {
 
       {/* Header Actions & Utilities */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {/* Compact Demo Role Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--stitch-surface-low)', padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <span style={{ fontSize: '11px', fontWeight: '700', color: isAdmin ? '#b45309' : 'var(--text-secondary)' }}>
-            {isAdmin ? '👑 Admin:' : '👤 Nhân sự:'}
-          </span>
-          {people.slice(0, 4).map(p => {
-            const isActive = p.id === currentPerson.id;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setCurrentPersonId(p.id)}
-                style={{
-                  border: 'none',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: isActive ? '700' : '500',
-                  cursor: 'pointer',
-                  backgroundColor: isActive ? 'var(--stitch-primary)' : 'transparent',
-                  color: isActive ? '#ffffff' : 'var(--text-primary)',
-                  transition: 'all 0.15s ease'
-                }}
-                title={`${p.fullName} - ${ROLES[p.role]?.label || p.role} (${p.region})`}
-              >
-                {p.fullName.split(' ').slice(-1)[0]}
-              </button>
-            );
-          })}
+        {/* Compact Role Selector Dropdown */}
+        <div ref={roleContainerRef} className="role-selector-container">
+          <button
+            type="button"
+            className="role-selector-btn"
+            onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+            aria-expanded={roleDropdownOpen}
+            aria-label="Chọn tài khoản chuyển đổi nhanh"
+            title="Bấm để chuyển đổi vai trò nhân sự / quản trị"
+          >
+            <span style={{ fontSize: '13px' }}>{isAdmin ? '👑' : '👤'}</span>
+            <span style={{ fontWeight: '700' }}>
+              {currentPerson.fullName.split(' ').slice(-1)[0]}
+            </span>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }} className="hidden-mobile">
+              ({ROLES[currentPerson.role]?.label || currentPerson.role})
+            </span>
+            <IconChevronDown size={14} />
+          </button>
+
+          {roleDropdownOpen && (
+            <div className="role-selector-dropdown">
+              <div style={{ padding: '8px 12px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                Chuyển tài khoản demo ({people.length})
+              </div>
+              <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                {people.map(p => {
+                  const isActive = p.id === currentPerson.id;
+                  const roleObj = ROLES[p.role];
+                  return (
+                    <div
+                      key={p.id}
+                      className={`role-selector-item ${isActive ? 'active' : ''}`}
+                      onClick={() => {
+                        setCurrentPersonId(p.id);
+                        setRoleDropdownOpen(false);
+                      }}
+                    >
+                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: isActive ? 'var(--stitch-primary)' : 'var(--stitch-surface-high)', color: isActive ? '#fff' : 'var(--stitch-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '12px', flexShrink: 0 }}>
+                        {p.fullName.charAt(0)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '12px', fontWeight: isActive ? '700' : '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {p.fullName} {isActive && '✓'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                          {roleObj?.label || p.role} • {p.region}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Google Drive Link */}
@@ -383,7 +424,9 @@ export default function Header({ title }) {
           }}
           title="Mở Google Drive Kho Hồ Sơ Doanh Nghiệp"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--stitch-primary)' }}>folder_open</span>
+          <span style={{ display: 'flex', alignItems: 'center', color: 'var(--stitch-primary)' }}>
+            <IconFolderOpen size={18} />
+          </span>
           <span className="hidden-mobile">Drive Kho</span>
         </a>
 
@@ -407,7 +450,9 @@ export default function Header({ title }) {
             aria-label="Thông báo hệ thống"
             onClick={() => setNotifOpen(!notifOpen)}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--stitch-secondary)' }}>notifications</span>
+            <span style={{ display: 'flex', alignItems: 'center', color: 'var(--stitch-secondary)' }}>
+              <IconBell size={19} />
+            </span>
             {unreadNotificationCount > 0 && (
               <span style={{
                 position: 'absolute',

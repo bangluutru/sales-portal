@@ -8,7 +8,9 @@ import {
   IconContracts,
   IconOperations,
   IconMyTasks,
-  IconSettings
+  IconSettings,
+  IconCloudDone,
+  IconSupport
 } from './Icons.jsx';
 
 export default function Sidebar() {
@@ -100,7 +102,9 @@ export default function Sidebar() {
         {/* Google Drive Status Widget */}
         <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: 'var(--stitch-surface-low)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--stitch-primary)' }}>cloud_done</span>
+            <span style={{ display: 'flex', alignItems: 'center', color: 'var(--stitch-primary)' }}>
+              <IconCloudDone size={20} />
+            </span>
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Google Drive Kho</p>
               <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>Đã kết nối đồng bộ</p>
@@ -130,7 +134,7 @@ export default function Sidebar() {
           }}
           onClick={() => alert('Bộ phận hỗ trợ nội bộ Genki Fami:\nHotline IT/Vận hành: 0988 123 456\nEmail: ops@genkifami.vn')}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>support_agent</span>
+          <IconSupport size={16} />
           <span>Hỗ trợ nội bộ</span>
         </button>
 

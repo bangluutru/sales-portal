@@ -3,7 +3,17 @@ import { useApp } from '../context/AppContext.jsx';
 import { formatVND, formatDate, numberToVietnameseWords } from '../utils/helpers.js';
 import StatusBadge from '../components/StatusBadge.jsx';
 import DriveLinkButton from '../components/DriveLinkButton.jsx';
-import { IconPlus, IconClose, IconContracts } from '../components/Icons.jsx';
+import {
+  IconPlus,
+  IconClose,
+  IconContracts,
+  IconCheckCircle,
+  IconExternal,
+  IconEye,
+  IconTrash,
+  IconWarning,
+  IconEdit
+} from '../components/Icons.jsx';
 import { exportContractToDocx } from '../utils/contractDocxGenerator.js';
 import { DEFAULT_BONUS_TIERS } from '../utils/constants.js';
 import ContractMiniDocEditor from '../components/ContractMiniDocEditor.jsx';
@@ -17,6 +27,7 @@ export default function ContractsView() {
     currentPerson,
     addContract,
     updateContract,
+    deleteContract,
     updateContractStatus
   } = useApp();
 
@@ -102,10 +113,30 @@ export default function ContractsView() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState(null);
 
+  // States xóa hợp đồng
+  const [contractToDelete, setContractToDelete] = useState(null);
+  const [contractDeleteError, setContractDeleteError] = useState('');
+
   // Loading & export feedback state
   const [isExportingDocx, setIsExportingDocx] = useState(false);
   const [exportFeedback, setExportFeedback] = useState(null);
   const [previewMode, setPreviewMode] = useState('FULL_12_ARTICLES'); // 'SUMMARY' | 'FULL_12_ARTICLES'
+
+  const handleConfirmDeleteContract = () => {
+    if (!contractToDelete) return;
+    const res = deleteContract(contractToDelete.id);
+    if (!res.success) {
+      setContractDeleteError(res.reason);
+      return;
+    }
+    setExportFeedback(`✓ Đã xóa hợp đồng "${contractToDelete.contractCode}" thành công.`);
+    setTimeout(() => setExportFeedback(null), 3000);
+    if (selectedContract?.id === contractToDelete.id) {
+      setSelectedContract(null);
+    }
+    setContractToDelete(null);
+    setContractDeleteError('');
+  };
 
   // Form states tạo hợp đồng
   const [personId, setPersonId] = useState(people[0]?.id || '');
@@ -417,9 +448,7 @@ export default function ContractsView() {
                           {tpl.tag}
                         </span>
                         {isSelected && (
-                          <span className="material-symbols-outlined" style={{ color: 'var(--stitch-primary)', fontSize: '20px' }}>
-                            check_circle
-                          </span>
+                          <IconCheckCircle size={20} color="var(--stitch-primary)" />
                         )}
                       </div>
                       <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -447,7 +476,7 @@ export default function ContractsView() {
                         title="Xem văn bản mẫu trên Google Docs"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
+                        <IconExternal size={16} />
                       </a>
                     </div>
                   </div>
@@ -705,7 +734,7 @@ export default function ContractsView() {
               <div className="card" style={{ padding: '0', overflow: 'hidden', background: '#e2e8f0' }}>
                 <div style={{ padding: '12px 16px', background: '#1e293b', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#38bdf8' }}>visibility</span>
+                    <IconEye size={18} color="#38bdf8" />
                     <span style={{ fontSize: '13px', fontWeight: 700 }}>Soát Trước Hợp Đồng (Live A4 Preview)</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1047,7 +1076,7 @@ export default function ContractsView() {
                           <StatusBadge status={c.status} />
                         </td>
                         <td>
-                          <div style={{ display: 'flex', gap: '6px' }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                             <button
                               className="btn btn-secondary btn-sm"
                               onClick={() => setSelectedContract(c)}
@@ -1063,6 +1092,19 @@ export default function ContractsView() {
                             >
                               <span>✏️ Soạn Thảo & In A4</span>
                             </button>
+                            {(c.status === 'DRAFT' || c.status === 'REJECTED' || role === 'ADMIN') && (
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: '4px 6px', color: 'var(--color-danger, #ef4444)' }}
+                                title="Xóa hợp đồng nháp / bị từ chối"
+                                onClick={() => {
+                                  setContractToDelete(c);
+                                  setContractDeleteError('');
+                                }}
+                              >
+                                <IconTrash size={14} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1454,7 +1496,23 @@ export default function ContractsView() {
               </div>
             </div>
 
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                {(selectedContract.status === 'DRAFT' || selectedContract.status === 'REJECTED' || role === 'ADMIN') && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    style={{ color: 'var(--color-danger, #ef4444)', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => {
+                      setContractToDelete(selectedContract);
+                      setContractDeleteError('');
+                    }}
+                  >
+                    <IconTrash size={14} />
+                    <span>Xóa Hợp Đồng</span>
+                  </button>
+                )}
+              </div>
               <button className="btn btn-secondary" onClick={() => setSelectedContract(null)}>
                 Đóng
               </button>
@@ -2122,6 +2180,59 @@ export default function ContractsView() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Xác Nhận Xóa Hợp Đồng (CRUD Delete for Draft/Rejected contracts) */}
+      {contractToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-container" style={{ maxWidth: '480px' }}>
+            <div className="modal-header" style={{ borderBottomColor: 'rgba(239, 68, 68, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <IconWarning size={22} color="var(--color-danger, #ef4444)" />
+                <h3 style={{ fontSize: '17px', fontWeight: 700, margin: 0, color: 'var(--color-danger, #ef4444)' }}>
+                  Xác Nhận Xóa Hợp Đồng
+                </h3>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setContractToDelete(null); setContractDeleteError(''); }}>
+                <IconClose size={16} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ fontSize: '13.5px', lineHeight: 1.5 }}>
+              <p style={{ marginTop: 0, color: 'var(--text-primary)' }}>
+                Bạn có chắc chắn muốn xóa hợp đồng <strong>{contractToDelete.contractCode}</strong> ({contractToDelete.partyBName || people.find(p => p.id === contractToDelete.personId)?.fullName})?
+              </p>
+              <div style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: '6px', fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                Chỉ những hợp đồng ở trạng thái <strong>Nháp (DRAFT)</strong> hoặc <strong>Bị Từ Chối (REJECTED)</strong> mới được phép xóa để đảm bảo toàn vẹn pháp lý.
+              </div>
+
+              {contractDeleteError && (
+                <div style={{ marginTop: '12px', padding: '10px 14px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '6px', color: '#991b1b', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                  <IconWarning size={18} color="#991b1b" />
+                  <div>{contractDeleteError}</div>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => { setContractToDelete(null); setContractDeleteError(''); }}
+              >
+                Hủy Bỏ
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                style={{ background: 'var(--color-danger, #ef4444)', color: '#fff', border: 'none' }}
+                onClick={handleConfirmDeleteContract}
+              >
+                Xác Nhận Xóa
+              </button>
+            </div>
           </div>
         </div>
       )}
