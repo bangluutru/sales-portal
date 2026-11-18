@@ -38,7 +38,7 @@ PERSON ──┬── CONTRACT (Quản lý metadata, template preview, duyệt 
 
 ### Khởi chạy môi trường phát triển (Dev Server):
 ```bash
-cd /Users/tranhaibang/.gemini/antigravity-ide/scratch/genki-sales-portal
+cd /Users/tranhaibang/.gemini/antigravity-ide/scratch/xtools/genki-sales-portal
 npm run dev
 ```
 Truy cập trình duyệt tại: `http://localhost:5173`
